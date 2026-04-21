@@ -9,6 +9,7 @@ Este projeto foi construído como um MVP (Minimum Viable Product), focado em val
 
 
 Objetivos do MVP
+
 Validar se o usuário consegue:
 •	Encontrar distribuidores disponíveis (dentro ou fora do horário comercial) 
 •	Visualizar produtos e preços 
