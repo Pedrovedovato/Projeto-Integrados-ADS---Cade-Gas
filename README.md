@@ -1,6 +1,8 @@
 # Projeto-Integrados-ADS---Cade-Gas
 
+
 CadêGás — MVP
+
 
 Descrição do Projeto
 
@@ -17,14 +19,19 @@ Validar se o usuário consegue:
 •	Realizar o pagamento na entrega
 O sistema não busca escalabilidade nem automação completa nesta fase.
 
+
 Público-Alvo
+
 Consumidor
 •	Consumidores residenciais 
 •	Consumidor comercial de pequenos comércios 
+
 Distribuidor
 •	Distribuidores (participação limitada e manual) 
 
+
 Funcionalidades Implementadas (P0)
+
 Usuário
 •	Cadastro de consumidor 
 •	Exibição de:
@@ -33,8 +40,10 @@ o	Telefone
 o	E-mail
 o	Endereço (manual) 
 •	Login 
+
 Localização
 •	Endereço informado manualmente 
+
 Distribuidores
 •	Cadastro de distribuidor 
 •	Exibição de: 
@@ -42,22 +51,27 @@ o	Nome
 o	Produtos 
 o	Preços 
 o	Taxa de entrega 
-•	Listagem de distribuidores ativos 
+•	Listagem de distribuidores ativos
+
 Pedido
 •	Seleção de produto (gás ou água) e sua quantidade
 •	Carrinho de compras 
-•	Resumo do pedido 
+•	Resumo do pedido
+
 Pagamento
 •	Seleção de pagamento offline (Pagamento na entrega): 
 o	Dinheiro 
 o	Pix 
 o	Cartão 
+
 Finalização
 •	Confirmação do pedido 
 •	Número do pedido 
 •	Mensagem informativa 
 
+
 Funcionalidades Fora do MVP
+
 Para manter o foco e reduzir complexidade, não foram implementadas:
 •	Pagamento online 
 •	Rastreamento em tempo real 
@@ -66,6 +80,7 @@ Para manter o foco e reduzir complexidade, não foram implementadas:
 •	Aplicativo mobile 
 •	Gestão completa da operação do distribuidor 
 •	Filtros e comparações complexas
+
 
 Tecnologias Utilizadas
 •	Backend: PHP 
