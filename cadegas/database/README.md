@@ -102,7 +102,7 @@ cadegaas-mvp/
 
 | Integrante | Responsabilidade          |
 |------------|---------------------------|
-| [Nome]     | Banco de dados            |
-| [Nome]     | Backend (PHP)             |
-| [Nome]     | Frontend                  |
-| [Nome]     | Arquitetura / Integração  |
+| [Amanda Soares]     | Banco de dados            |
+| [Amanda Ribeiro]     | Backend (PHP)             |
+| [Stefano]     | Frontend                  |
+| [Pedro e Bruno]     | Arquitetura / Integração  |
