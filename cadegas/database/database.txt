@@ -1,1 +1,20 @@
 
+CadêGás - Instruções de Banco de Dados
+========================================
+
+1. Criar o banco de dados:
+   mysql -u root -p
+   CREATE DATABASE cadegaas;
+   exit;
+
+2. Importar o schema:
+   mysql -u root -p cadegaas < schema.sql
+
+3. Configurar credenciais:
+   Edite: backend/config/config.php
+
+   Altere:
+   define('DB_USER', 'root');
+   define('DB_PASS', '');
+   define('DB_HOST', 'localhost');
+   define('DB_NAME', 'cadegaas');

@@ -74,12 +74,12 @@ mysql -u root -p < schema.sql
 
 ## Dados seed incluídos
 
-O script já insere dados iniciais para desenvolvimento:
+O ‘script’ já insere dados iniciais para desenvolvimento:
 
 - 3 distribuidores ativos (Bertioga/SP)
 - 7 produtos distribuídos entre os distribuidores
 - 1 usuário consumidor de exemplo
-- 1 pedido de teste com item vinculado
+- 1 pedido de teste com ‘item’ vinculado
 
 ---
 

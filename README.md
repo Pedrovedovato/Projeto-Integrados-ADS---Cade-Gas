@@ -1,11 +1,11 @@
 # CadêGás — MVP
 
 ## Descrição do Projeto
-O CadêGás é uma aplicação web desenvolvida com o objetivo de validar uma proposta simples: permitir que consumidores encontrem rapidamente distribuidores disponíveis e realizem pedidos de gás ou água, especialmente fora do horário comercial.
+O CadêGás é uma aplicação web desenvolvida visando validar uma proposta simples: permitir que consumidores encontrem rapidamente distribuidores disponíveis e realizem pedidos de gás ou água, especialmente fora do horário comercial.
 Este projeto foi construído como um MVP (Minimum Viable Product), focado em validar a ideia com o menor nível de complexidade possível.
 
 ## Objetivos do MVP
-Validar se o usuário consegue:
+Validar se o utilizador consegue:
 
 •	Encontrar distribuidores disponíveis (dentro ou fora do horário comercial) 
 
@@ -61,7 +61,7 @@ o	Taxa de entrega fixa
 
 ## Pedido
 
-•	Seleção de produto (gás ou água) e sua quantidade
+•	Seleção de produto(gás ou água), e quantidade
 
 •	Carrinho de compras 
 
