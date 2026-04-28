@@ -39,7 +39,7 @@ class BancoDados
 
     /**
      * Retorna instância da conexão
-     * @return PDO Objeto de conexão PDO
+     * @return self
      */
     public static function obterInstancia()
     {
