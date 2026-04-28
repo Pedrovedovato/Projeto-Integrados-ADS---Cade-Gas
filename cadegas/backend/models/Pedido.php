@@ -59,4 +59,41 @@ class Pedido
         $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
         return $resultado['preco'];
     }
+    /**
+     * Busca um pedido pelo ID
+     */
+    public function buscarPedido($idPedido)
+    {
+        $sql = "SELECT *
+                FROM pedido
+                WHERE id_pedido = :id_pedido
+                LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id_pedido', $idPedido, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Busca os itens de um pedido
+     */
+    public function buscarItensPedido($idPedido)
+    {
+        $sql = "SELECT ip.id_produto,
+                       p.descricao,
+                       ip.quantidade,
+                       ip.preco_unitario
+                FROM itens_pedido ip
+                JOIN produto p ON p.id_produto = ip.id_produto
+                WHERE ip.id_pedido = :id_pedido";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id_pedido', $idPedido, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }

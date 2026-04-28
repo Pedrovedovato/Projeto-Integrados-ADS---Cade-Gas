@@ -59,4 +59,36 @@ class PedidoController
             "total" => $total
         ]);
     }
+    /**
+     * GET /pedidos/{id}
+     */
+    public function buscar($idPedido)
+    {
+        $pedidoModel = new Pedido();
+
+        $pedido = $pedidoModel->buscarPedido($idPedido);
+
+        if (!$pedido) {
+            http_response_code(404);
+            echo json_encode([
+                "erro" => "Pedido não encontrado"
+            ]);
+            return;
+        }
+
+        $itens = $pedidoModel->buscarItensPedido($idPedido);
+
+        http_response_code(200);
+        echo json_encode([
+            "pedido" => [
+                "id_pedido" => $pedido['id_pedido'],
+                "id_usuario" => $pedido['id_usuario'],
+                "id_distribuidor" => $pedido['id_distribuidor'],
+                "total" => $pedido['total'],
+                "criado_em" => $pedido['criado_em']
+            ],
+            "itens" => $itens,
+            "mensagem" => "O distribuidor entrará em contato para confirmar a entrega"
+        ]);
+    }
 }

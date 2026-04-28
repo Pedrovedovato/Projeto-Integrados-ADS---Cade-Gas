@@ -72,7 +72,7 @@ if ($uri === '/pedidos' && $method === 'POST') {
 // GET /pedidos/{id}
 if (preg_match('#^/pedidos/(\d+)$#', $uri, $matches) && $method === 'GET') {
     $pedidoId = $matches[1];
-    (new PedidoController())->confirmar($pedidoId);
+    (new PedidoController())->buscar($pedidoId);
     exit;
 }
 
