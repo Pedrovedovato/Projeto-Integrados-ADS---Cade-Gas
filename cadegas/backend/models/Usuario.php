@@ -44,4 +44,20 @@ class Usuario
 
         return $stmt->rowCount() > 0;
     }
+    /**
+     * Busca usuário pelo e-mail
+     */
+    public function buscarPorEmail($email)
+    {
+        $sql = "SELECT *
+                FROM usuario
+                WHERE email = :email
+                LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

@@ -57,4 +57,55 @@ class AuthController
             ]);
         }
     }
+    /**
+     * POST /login
+     */
+    public function login()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        // Validação básica
+        if (
+            empty($data['email']) ||
+            empty($data['senha'])
+        ) {
+            http_response_code(400);
+            echo json_encode([
+                "erro" => "E-mail e senha são obrigatórios"
+            ]);
+            return;
+        }
+
+        $usuarioModel = new Usuario();
+        $usuario = $usuarioModel->buscarPorEmail($data['email']);
+
+        // Usuário não encontrado
+        if (!$usuario) {
+            http_response_code(401);
+            echo json_encode([
+                "erro" => "E-mail ou senha inválidos"
+            ]);
+            return;
+        }
+
+        // Verifica senha
+        if (!password_verify($data['senha'], $usuario['senha'])) {
+            http_response_code(401);
+            echo json_encode([
+                "erro" => "E-mail ou senha inválidos"
+            ]);
+            return;
+        }
+
+        // Login bem-sucedido
+        http_response_code(200);
+        echo json_encode([
+            "mensagem" => "Login realizado com sucesso",
+            "usuario" => [
+                "id" => $usuario['id_usuario'],
+                "nome" => $usuario['nome'],
+                "email" => $usuario['email']
+            ]
+        ]);
+    }
 }
