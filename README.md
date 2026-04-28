@@ -47,17 +47,17 @@ o	Endereço (manual)
 •	Endereço informado manualmente 
 
 ## Distribuidores
-•	Cadastro de distribuidor. Exibição de: 
+•	Listagem de distribuidores. Exibição de: 
 
 o	Nome 
 
-o	Produtos 
+o	Endereço aproximado
 
-o	Preços 
+o	Produtos disponíveis (gás e/ou água) 
 
-o	Taxa de entrega 
+o	Preço do produto
 
-•	Listagem de distribuidores ativos 
+o	Taxa de entrega fixa
 
 ## Pedido
 

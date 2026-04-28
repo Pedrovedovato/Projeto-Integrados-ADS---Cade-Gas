@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config.php';
 
 // ==================================
 // CONFIGURAÇÕES PARA TESTE / DEBUG
@@ -28,3 +29,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // ==================================
 
 require_once __DIR__ . '/../routes.php';
+
