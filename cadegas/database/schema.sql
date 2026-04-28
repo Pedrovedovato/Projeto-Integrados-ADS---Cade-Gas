@@ -5,11 +5,11 @@
 --  Alinhado com: Requisitos P0 (US01–US10)
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS cadegaas
+CREATE DATABASE IF NOT EXISTS cadgas
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE cadegaas;
+USE cadgas;
 
 -- ============================================================
 --  TABELA: usuario
