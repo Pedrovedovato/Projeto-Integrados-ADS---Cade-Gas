@@ -79,7 +79,7 @@ if (isset($_SESSION['usuario_id'])) {
         e.preventDefault();
 
         const formData = {
-            nome: document.getElementById('nome'.value,
+            nome: document.getElementById('nome').value,
             telefone: document.getElementById('telefone').value,
             email: document.getElementById('email').value,
             endereco: document.getElementById('endereco').value,
