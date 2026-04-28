@@ -44,7 +44,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
     async function loadProducts() {
         try {
-            const response = await fetch(`api/produtos/list.php?id_distribuidor=${distributorId}`);
+            const response = await fetch(`../../backend/public/routes.php/api/produtos/list?id_distribuidor=${distributorId}`);
             const data = await response.json();
 
             if (data.success) {

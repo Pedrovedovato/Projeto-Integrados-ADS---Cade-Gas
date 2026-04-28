@@ -33,7 +33,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
         <div class="section">
             <h2>Forma de Pagamento</h2>
-            <select id="paymentMethod" class="form-control">
+            <label for="paymentMethod"></label><select id="paymentMethod" class="form-control">
                 <option value="">Selecione forma de pagamento</option>
                 <option value="money">Dinheiro</option>
                 <option value="pix">PIX</option>
@@ -42,8 +42,14 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
 
         <div class="section">
-            <h2>Observações</h2>
-            <textarea id="observacao" class="form-control" rows="3" placeholder="Alguma observação sobre o pedido?"></textarea>
+            <h2 id="obs-titulo">Observações</h2>
+            <label for="observacao"></label><textarea
+                    id="observacao"
+                    aria-labelledby="obs-title"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Alguma observação sobre o pedido?">
+            </textarea>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
@@ -111,7 +117,7 @@ if (!isset($_SESSION['usuario_id'])) {
         };
 
         try {
-            const response = await fetch('../../backend/controllers/pedidos/create.php', {
+            const response = await fetch('../../backend/public/routes.php/api/pedidos/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pedidoData)

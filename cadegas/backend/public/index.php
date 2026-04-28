@@ -13,7 +13,7 @@ if (isset($_SESSION['usuario_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CadêGás - Bem-vindo</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="/cadegas/frontend/assets/css/style.css">
 </head>
 <body>
 <div class="welcome-container">
@@ -26,8 +26,8 @@ if (isset($_SESSION['usuario_id'])) {
                 <h2>Consumidor</h2>
                 <p>Peça gás e água com praticidade</p>
                 <div class="button-group">
-                    <a href="login.php" class="btn btn-primary">Entrar</a>
-                    <a href="register.php" class="btn btn-secondary">Cadastrar</a>
+                    <a href="/cadegas/backend/controllers/auth/login.php" class="btn btn-primary">Entrar</a>
+                    <a href="/cadegas/backend/controllers/auth/register.php" class="btn btn-secondary">Cadastrar</a>
                 </div>
             </div>
         </div>

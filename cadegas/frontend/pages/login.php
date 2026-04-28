@@ -51,7 +51,7 @@ if (isset($_SESSION['usuario_id'])) {
         const errorDiv = document.getElementById('errorMessage');
 
         try {
-            const response = await fetch('../../backend/controllers/auth/login.php', {
+            const response = await fetch('../../backend/public/routes.php/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha })

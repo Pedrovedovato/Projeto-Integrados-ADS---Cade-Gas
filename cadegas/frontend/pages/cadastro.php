@@ -79,7 +79,7 @@ if (isset($_SESSION['usuario_id'])) {
         e.preventDefault();
 
         const formData = {
-            nome: document.getElementById('nome').value,
+            nome: document.getElementById('nome'.value,
             telefone: document.getElementById('telefone').value,
             email: document.getElementById('email').value,
             endereco: document.getElementById('endereco').value,
@@ -92,7 +92,7 @@ if (isset($_SESSION['usuario_id'])) {
         const errorDiv = document.getElementById('errorMessage');
 
         try {
-            const response = await fetch('../../backend/controllers/auth/cadastro.php', {
+            const response = await fetch('../../backend/public/routes.php/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

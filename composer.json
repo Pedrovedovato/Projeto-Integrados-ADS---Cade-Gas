@@ -1,0 +1,31 @@
+{
+  "name": "cade-gas/cade-gas",
+  "description": "Projeto para delivery de gás e água.",
+  "type": "project",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "scarminatti",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {},
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Cadegas\\": "cadegas/backend/"
+    },
+    "files": [
+      "cadegas/backend/config/config.php",
+      "cadegas/backend/config/db.php"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

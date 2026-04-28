@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
 // Router simples para APIs
 $request_uri = $_SERVER['REQUEST_URI'];
