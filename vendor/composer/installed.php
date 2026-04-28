@@ -3,7 +3,7 @@
         'name' => 'cade-gas/cade-gas',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'bb7e92748c86236bd86ca75db27dae12eb842a6c',
+        'reference' => 'eb4205d1d882a28136cc060cf67678ea7fe7e001',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'cade-gas/cade-gas' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'bb7e92748c86236bd86ca75db27dae12eb842a6c',
+            'reference' => 'eb4205d1d882a28136cc060cf67678ea7fe7e001',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

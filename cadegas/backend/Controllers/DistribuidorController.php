@@ -1,8 +1,11 @@
 <?php
+
+namespace Cadegas\Controllers;
+
 // backend/controllers/DistribuidorController.php
 
-require_once __DIR__ . '/../models/Distribuidor.php';
-require_once __DIR__ . '/../models/Produto.php';
+use Cadegas\Models\Distribuidor;
+use Cadegas\Models\Produto;
 
 class DistribuidorController
 {

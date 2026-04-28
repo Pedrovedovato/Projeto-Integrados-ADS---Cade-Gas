@@ -1,7 +1,10 @@
 <?php
-// backend/controllers/AuthController.php
 
-require_once __DIR__ . '/../models/Usuario.php';
+namespace Cadegas\Controllers;
+
+use Cadegas\Models\Usuario;
+
+// backend/controllers/AuthController.php
 
 class AuthController
 {

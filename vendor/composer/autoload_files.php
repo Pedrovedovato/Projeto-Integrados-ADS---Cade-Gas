@@ -8,6 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
     'ec07570ca5a812141189b1fa81503674' => $vendorDir . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
-    '430139551672175ef220c90d2746e539' => $baseDir . '/cadegas/backend/config/config.php',
-    '87ca034b2031a5d57dfb67d37ceef2ea' => $baseDir . '/cadegas/backend/config/db.php',
+    '44b5879bbb4487da489a156258d01cad' => $baseDir . '/cadegas/backend/Config/config.php',
 );

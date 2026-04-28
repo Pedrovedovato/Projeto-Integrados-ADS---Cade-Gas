@@ -1,8 +1,12 @@
 <?php
+
+namespace Cadegas\Models;
+
+use Cadegas\Config\Database;
+use PDO;
+
 // backend/models/Distribuidor.php
 //Modelo para representar os distribuidores. Centraliza a lógica de acesso aos dados dos distribuidores, facilitando a manutenção e organização do código.
-
-require_once __DIR__ . '/../config/database.php';
 
 class Distribuidor
 {

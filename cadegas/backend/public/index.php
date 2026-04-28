@@ -1,5 +1,10 @@
 <?php
-require_once __DIR__ . '/../config.php';
+
+// Inclui o autoloader do Composer
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+// Carrega as configurações de ambiente
+require_once __DIR__ . '/../Config/config.php';
 
 // ==================================
 // CONFIGURAÇÕES PARA TESTE / DEBUG

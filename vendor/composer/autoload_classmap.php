@@ -6,6 +6,15 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Cadegas\\Config\\BancoDados' => $baseDir . '/cadegas/backend/Config/BancoDados.php',
+    'Cadegas\\Config\\Database' => $baseDir . '/cadegas/backend/Config/Database.php',
+    'Cadegas\\Controllers\\AuthController' => $baseDir . '/cadegas/backend/Controllers/AuthController.php',
+    'Cadegas\\Controllers\\DistribuidorController' => $baseDir . '/cadegas/backend/Controllers/DistribuidorController.php',
+    'Cadegas\\Controllers\\PedidoController' => $baseDir . '/cadegas/backend/Controllers/PedidoController.php',
+    'Cadegas\\Models\\Distribuidor' => $baseDir . '/cadegas/backend/Models/Distribuidor.php',
+    'Cadegas\\Models\\Pedido' => $baseDir . '/cadegas/backend/Models/Pedido.php',
+    'Cadegas\\Models\\Produto' => $baseDir . '/cadegas/backend/Models/Produto.php',
+    'Cadegas\\Models\\Usuario' => $baseDir . '/cadegas/backend/Models/Usuario.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'DeepCopy\\DeepCopy' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/DeepCopy.php',
     'DeepCopy\\Exception\\CloneException' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/Exception/CloneException.php',

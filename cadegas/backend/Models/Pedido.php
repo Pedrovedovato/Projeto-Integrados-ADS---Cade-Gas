@@ -1,8 +1,12 @@
 <?php
+
+namespace Cadegas\Models;
+
+use Cadegas\Config\Database;
+use PDO;
+
 // backend/models/Pedido.php
 //Modelo para representar os pedidos. Centraliza a lógica de acesso aos dados dos pedidos, facilitando a manutenção e organização do código.
-
-require_once __DIR__ . '/../config/database.php';
 
 class Pedido
 {

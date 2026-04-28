@@ -4,10 +4,9 @@
 //Direciona corretamente cada controller
 //Trata URLs com parâmetros ({id})
 
-//Inclusão dos controllers
-require_once __DIR__ . '/controllers/AuthController.php';
-require_once __DIR__ . '/controllers/DistribuidorController.php';
-require_once __DIR__ . '/controllers/PedidoController.php';
+use Cadegas\Controllers\AuthController;
+use Cadegas\Controllers\DistribuidorController;
+use Cadegas\Controllers\PedidoController;
 
 //Captura método HTTP e URI
 $method = $_SERVER['REQUEST_METHOD'];

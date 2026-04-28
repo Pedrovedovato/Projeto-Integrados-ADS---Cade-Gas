@@ -1,4 +1,10 @@
 <?php
+
+namespace Cadegas\Config;
+
+use PDO;
+use PDOException;
+
 // config/database.php
 //Centraliza a conexão com o banco para não precisar de criar conexão em cada controller. Facilita manutenção e organização do código.
 

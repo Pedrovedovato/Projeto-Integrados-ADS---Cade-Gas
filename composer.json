@@ -18,8 +18,7 @@
       "Cadegas\\": "cadegas/backend/"
     },
     "files": [
-      "cadegas/backend/config/config.php",
-      "cadegas/backend/config/db.php"
+      "cadegas/backend/Config/config.php"
     ]
   },
   "config": {

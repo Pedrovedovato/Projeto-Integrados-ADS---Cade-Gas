@@ -1,7 +1,10 @@
 <?php
-// backend/controllers/PedidoController.php
 
-require_once __DIR__ . '/../models/Pedido.php';
+namespace Cadegas\Controllers;
+
+use Cadegas\Models\Pedido;
+
+// backend/controllers/PedidoController.php
 
 class PedidoController
 {

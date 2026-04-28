@@ -9,8 +9,7 @@ class ComposerStaticInit6dcce001c3ba6c092ba7e56c1bf6e663
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
-        '430139551672175ef220c90d2746e539' => __DIR__ . '/../..' . '/cadegas/backend/config/config.php',
-        '87ca034b2031a5d57dfb67d37ceef2ea' => __DIR__ . '/../..' . '/cadegas/backend/config/db.php',
+        '44b5879bbb4487da489a156258d01cad' => __DIR__ . '/../..' . '/cadegas/backend/Config/config.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -49,6 +48,15 @@ class ComposerStaticInit6dcce001c3ba6c092ba7e56c1bf6e663
     );
 
     public static $classMap = array (
+        'Cadegas\\Config\\BancoDados' => __DIR__ . '/../..' . '/cadegas/backend/Config/BancoDados.php',
+        'Cadegas\\Config\\Database' => __DIR__ . '/../..' . '/cadegas/backend/Config/Database.php',
+        'Cadegas\\Controllers\\AuthController' => __DIR__ . '/../..' . '/cadegas/backend/Controllers/AuthController.php',
+        'Cadegas\\Controllers\\DistribuidorController' => __DIR__ . '/../..' . '/cadegas/backend/Controllers/DistribuidorController.php',
+        'Cadegas\\Controllers\\PedidoController' => __DIR__ . '/../..' . '/cadegas/backend/Controllers/PedidoController.php',
+        'Cadegas\\Models\\Distribuidor' => __DIR__ . '/../..' . '/cadegas/backend/Models/Distribuidor.php',
+        'Cadegas\\Models\\Pedido' => __DIR__ . '/../..' . '/cadegas/backend/Models/Pedido.php',
+        'Cadegas\\Models\\Produto' => __DIR__ . '/../..' . '/cadegas/backend/Models/Produto.php',
+        'Cadegas\\Models\\Usuario' => __DIR__ . '/../..' . '/cadegas/backend/Models/Usuario.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'DeepCopy\\DeepCopy' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/DeepCopy.php',
         'DeepCopy\\Exception\\CloneException' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/Exception/CloneException.php',
