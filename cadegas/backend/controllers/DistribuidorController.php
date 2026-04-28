@@ -1,31 +1,25 @@
 <?php
-//Mock teste controler x rotas
-class DistribuidorController {
+// backend/controllers/DistribuidorController.php
 
-    public function listar() {
-        echo json_encode([
-            "endpoint" => "GET /distribuidores",
-            "dados" => [
-                [
-                    "id" => 1,
-                    "nome" => "Distribuidor Exemplo",
-                    "taxa_entrega" => 10.00
-                ]
-            ]
-        ]);
+require_once __DIR__ . '/../models/Distribuidor.php';
+
+class DistribuidorController
+{
+    public function listar()
+    {
+        $model = new Distribuidor();
+        $distribuidores = $model->listarAtivos();
+
+        echo json_encode($distribuidores);
     }
 
-    public function listarProdutos($distribuidorId) {
+    public function listarProdutos($distribuidorId)
+    {
+        // continua mockado por enquanto
         echo json_encode([
             "endpoint" => "GET /distribuidores/{id}/produtos",
             "distribuidor_id" => $distribuidorId,
-            "produtos" => [
-                [
-                    "id" => 1,
-                    "nome" => "Gás P13",
-                    "preco" => 110.00
-                ]
-            ]
+            "produtos" => []
         ]);
     }
 }
