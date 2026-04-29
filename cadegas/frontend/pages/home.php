@@ -59,7 +59,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
     async function loadDistribuidores() {
         try {
-            const response = await fetch('../../backend/controllers/distribuidores/list.php');
+            const response = await fetch('../../backend/public/distribuidores');
             const data = await response.json();
 
             if (data.success) {
@@ -102,7 +102,7 @@ if (!isset($_SESSION['usuario_id'])) {
     document.getElementById('filter').addEventListener('change', renderDistribuidores);
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await fetch('../../backend/controllers/auth/logout.php');
+        await fetch('../../backend/public/logout', { method: 'POST' });
         localStorage.clear();
         window.location.href = 'main.php';
     });

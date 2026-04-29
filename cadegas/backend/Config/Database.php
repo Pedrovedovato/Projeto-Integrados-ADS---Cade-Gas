@@ -16,7 +16,7 @@ class Database
     {
         if (self::$connection === null) {
             $host = 'localhost';
-            $dbName = 'cadgas';     // nome do banco
+            $dbName = 'cadegas';     // nome do banco
             $user = 'root';        // usuário padrão do UwAmp
             $pass = 'root';            // senha padrão (vazia) alterada para 'root' para compatibilidade com MySQL
             $charset = 'utf8mb4';

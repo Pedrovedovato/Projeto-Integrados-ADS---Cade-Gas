@@ -38,6 +38,12 @@ if ($uri === '/login' && $method === 'POST') {
     (new AuthController())->login();
     exit;
 }
+// POST /logout
+//Permite que o consumidor saia do sistema
+if ($uri === '/logout' && $method === 'POST') {
+    (new AuthController())->logout();
+    exit;
+}
 
 // ================================
 // ROTAS DE DISTRIBUIDORES

@@ -24,7 +24,7 @@ if (file_exists(__DIR__ . '/.env')) {
 
 // Configurações do banco de dados
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'cadegaas');
+define('DB_NAME', getenv('DB_NAME') ?: 'cadegas');
 define('DB_USER', getenv('DB_USER') ?: 'root');
 define('DB_PASS', getenv('DB_PASS') ?: 'root');  // UwAmp usa 'root' como senha padrão (pode ser vazio em XAMPP)
 

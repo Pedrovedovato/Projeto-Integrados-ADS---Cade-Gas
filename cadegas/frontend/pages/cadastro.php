@@ -92,7 +92,7 @@ if (isset($_SESSION['usuario_id'])) {
         const errorDiv = document.getElementById('errorMessage');
 
         try {
-            const response = await fetch('../../backend/public/routes.php/api/auth/register', {
+            const response = await fetch('../../backend/public/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

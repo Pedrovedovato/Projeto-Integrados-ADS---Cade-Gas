@@ -117,7 +117,7 @@ if (!isset($_SESSION['usuario_id'])) {
         };
 
         try {
-            const response = await fetch('../../backend/public/routes.php/api/pedidos/create', {
+            const response = await fetch('../../backend/public/pedidos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(pedidoData)
