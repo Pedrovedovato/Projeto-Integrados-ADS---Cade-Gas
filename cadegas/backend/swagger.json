@@ -1,0 +1,591 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CadêGás API",
+    "version": "1.0.0",
+    "description": "API REST para plataforma de entrega de gás e água (CadêGás MVP)",
+    "contact": {
+      "name": "Time de Desenvolvimento"
+    }
+  },
+  "host": "localhost",
+  "basePath": "/backend/public",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Registrar novo usuário",
+        "description": "Permite que um consumidor crie uma conta no sistema para usar o aplicativo",
+        "operationId": "registerUser",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados do novo usuário",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegistroRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/RegistroResponse"
+            }
+          },
+          "400": {
+            "description": "Dados obrigatórios não preenchidos",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          },
+          "409": {
+            "description": "E-mail já cadastrado",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Fazer login",
+        "description": "Permite que o consumidor acesse o sistema com suas credenciais",
+        "operationId": "loginUser",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Credenciais do usuário",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "400": {
+            "description": "E-mail ou senha não informados",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          },
+          "401": {
+            "description": "E-mail ou senha incorretos",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          }
+        }
+      }
+    },
+    "/distribuidores": {
+      "get": {
+        "tags": [
+          "Distribuidores"
+        ],
+        "summary": "Listar distribuidores ativos",
+        "description": "Mostra ao consumidor quais distribuidores estão ativos e disponíveis para pedido",
+        "operationId": "listDistribuidores",
+        "responses": {
+          "200": {
+            "description": "Lista de distribuidores",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Distribuidor"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/distribuidores/{id}/produtos": {
+      "get": {
+        "tags": [
+          "Distribuidores"
+        ],
+        "summary": "Listar produtos de um distribuidor",
+        "description": "Mostra os produtos de um distribuidor específico quando o consumidor escolhe um deles",
+        "operationId": "listProdutosByDistribuidor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do distribuidor",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produtos do distribuidor",
+            "schema": {
+              "$ref": "#/definitions/ProdutosResponse"
+            }
+          }
+        }
+      }
+    },
+    "/pedidos": {
+      "post": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Criar novo pedido",
+        "description": "Permite que o consumidor finalize um pedido de produtos",
+        "operationId": "criarPedido",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados do pedido a criar",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CriarPedidoRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pedido criado com sucesso",
+            "schema": {
+              "$ref": "#/definitions/CriarPedidoResponse"
+            }
+          },
+          "400": {
+            "description": "Dados obrigatórios não preenchidos",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          }
+        }
+      }
+    },
+    "/pedidos/{id}": {
+      "get": {
+        "tags": [
+          "Pedidos"
+        ],
+        "summary": "Buscar detalhes do pedido",
+        "description": "Recupera os detalhes completos de um pedido específico, incluindo itens e total",
+        "operationId": "buscarPedido",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do pedido",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do pedido",
+            "schema": {
+              "$ref": "#/definitions/PedidoResponse"
+            }
+          },
+          "404": {
+            "description": "Pedido não encontrado",
+            "schema": {
+              "$ref": "#/definitions/Erro"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RegistroRequest": {
+      "type": "object",
+      "required": [
+        "nome",
+        "email",
+        "telefone",
+        "senha"
+      ],
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Nome completo do usuário",
+          "example": "João Silva"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "E-mail único do usuário",
+          "example": "joao@example.com"
+        },
+        "telefone": {
+          "type": "string",
+          "description": "Telefone do usuário",
+          "example": "(11) 98765-4321"
+        },
+        "senha": {
+          "type": "string",
+          "format": "password",
+          "description": "Senha do usuário (será criptografada)",
+          "example": "senha123"
+        }
+      }
+    },
+    "RegistroResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem": {
+          "type": "string",
+          "example": "Usuário criado com sucesso"
+        },
+        "id_usuario": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "email": {
+          "type": "string",
+          "example": "joao@example.com"
+        }
+      }
+    },
+    "LoginRequest": {
+      "type": "object",
+      "required": [
+        "email",
+        "senha"
+      ],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "E-mail do usuário",
+          "example": "joao@example.com"
+        },
+        "senha": {
+          "type": "string",
+          "format": "password",
+          "description": "Senha do usuário",
+          "example": "senha123"
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem": {
+          "type": "string",
+          "example": "Login realizado com sucesso"
+        },
+        "id_usuario": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "nome": {
+          "type": "string",
+          "example": "João Silva"
+        },
+        "email": {
+          "type": "string",
+          "example": "joao@example.com"
+        }
+      }
+    },
+    "Distribuidor": {
+      "type": "object",
+      "properties": {
+        "id_distribuidor": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "nome_empresa": {
+          "type": "string",
+          "example": "Gás Brasil Distribuições"
+        },
+        "cnpj": {
+          "type": "string",
+          "example": "12.345.678/0001-99"
+        },
+        "responsavel": {
+          "type": "string",
+          "example": "João Manager"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "contato@gasbrasil.com"
+        },
+        "telefone": {
+          "type": "string",
+          "example": "(11) 3456-7890"
+        },
+        "endereco": {
+          "type": "string",
+          "example": "Rua A, 123"
+        },
+        "cidade": {
+          "type": "string",
+          "example": "São Paulo"
+        },
+        "estado": {
+          "type": "string",
+          "example": "SP"
+        },
+        "cep": {
+          "type": "string",
+          "example": "01310-100"
+        },
+        "latitude": {
+          "type": "number",
+          "format": "double",
+          "example": -23.561684
+        },
+        "longitude": {
+          "type": "number",
+          "format": "double",
+          "example": -46.656139
+        },
+        "taxa_entrega": {
+          "type": "number",
+          "format": "double",
+          "example": 10.00
+        },
+        "ativo": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "Produto": {
+      "type": "object",
+      "properties": {
+        "id_produto": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "id_distribuidor": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "tipo": {
+          "type": "string",
+          "description": "Tipo do produto (ex: Botijão P13, Galão de Água)",
+          "example": "Botijão P13"
+        },
+        "descricao": {
+          "type": "string",
+          "example": "Botijão de gás 13kg padrão"
+        },
+        "preco": {
+          "type": "number",
+          "format": "double",
+          "example": 89.90
+        },
+        "estoque": {
+          "type": "integer",
+          "format": "int32",
+          "example": 50
+        }
+      }
+    },
+    "ProdutosResponse": {
+      "type": "object",
+      "properties": {
+        "distribuidor_id": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "produtos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Produto"
+          }
+        }
+      }
+    },
+    "ItemPedidoRequest": {
+      "type": "object",
+      "required": [
+        "id_produto",
+        "quantidade"
+      ],
+      "properties": {
+        "id_produto": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "quantidade": {
+          "type": "integer",
+          "format": "int32",
+          "example": 2
+        }
+      }
+    },
+    "ItemPedido": {
+      "type": "object",
+      "properties": {
+        "id_item": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "id_produto": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "quantidade": {
+          "type": "integer",
+          "format": "int32",
+          "example": 2
+        },
+        "preco_unitario": {
+          "type": "number",
+          "format": "double",
+          "example": 89.90
+        },
+        "subtotal": {
+          "type": "number",
+          "format": "double",
+          "example": 179.80
+        }
+      }
+    },
+    "CriarPedidoRequest": {
+      "type": "object",
+      "required": [
+        "id_usuario",
+        "id_distribuidor",
+        "itens"
+      ],
+      "properties": {
+        "id_usuario": {
+          "type": "integer",
+          "format": "int32",
+          "description": "ID do usuário criando o pedido",
+          "example": 1
+        },
+        "id_distribuidor": {
+          "type": "integer",
+          "format": "int32",
+          "description": "ID do distribuidor",
+          "example": 1
+        },
+        "itens": {
+          "type": "array",
+          "description": "Itens do pedido",
+          "items": {
+            "$ref": "#/definitions/ItemPedidoRequest"
+          }
+        }
+      }
+    },
+    "CriarPedidoResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem": {
+          "type": "string",
+          "example": "Pedido criado com sucesso"
+        },
+        "id_pedido": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "example": 189.80
+        }
+      }
+    },
+    "PedidoDetalhes": {
+      "type": "object",
+      "properties": {
+        "id_pedido": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "id_usuario": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "id_distribuidor": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "total": {
+          "type": "number",
+          "format": "double",
+          "example": 189.80
+        },
+        "criado_em": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-05-05 10:30:00"
+        }
+      }
+    },
+    "PedidoResponse": {
+      "type": "object",
+      "properties": {
+        "pedido": {
+          "$ref": "#/definitions/PedidoDetalhes"
+        },
+        "itens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ItemPedido"
+          }
+        },
+        "mensagem": {
+          "type": "string",
+          "example": "O distribuidor entrará em contato para confirmar a entrega"
+        }
+      }
+    },
+    "Erro": {
+      "type": "object",
+      "properties": {
+        "erro": {
+          "type": "string",
+          "description": "Mensagem de erro"
+        }
+      }
+    }
+  }
+}
