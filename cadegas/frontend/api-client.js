@@ -4,7 +4,7 @@
 const API_CONFIG = {
   // Ambiente de Desenvolvimento
   development: {
-    BASE_URL: 'http://localhost/backend/public',
+    BASE_URL: 'http://localhost/cadegas/backend/public',
     TIMEOUT: 30000,
     DEBUG: true
   },
@@ -25,8 +25,8 @@ const API_CONFIG = {
 };
 
 // Detectar ambiente atual
-const CURRENT_ENV = process.env.NODE_ENV || 'development';
-const CONFIG = API_CONFIG[CURRENT_ENV];
+const CURRENT_ENV = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV) ? process.env.NODE_ENV : 'development';
+const CONFIG = API_CONFIG[CURRENT_ENV] || API_CONFIG.development;
 
 /**
  * Classe para gerenciar requisições à API
@@ -81,27 +81,44 @@ class ApiClient {
   }
 
   /**
-   * Listar produtos de um distribuidor
+   * Listar produtos de um distribuidor específico
    */
   async listProdutos(distribuidorId) {
     return this.get(`/distribuidores/${distribuidorId}/produtos`);
   }
 
   /**
-   * Criar novo pedido
+   * Listar TODOS os produtos disponíveis (de qualquer distribuidor ativo).
+   * Usado na tela inicial pós-login.
    */
-  async criarPedido(distribuidorId, itens) {
+  async listAllProdutos() {
+    return this.get('/produtos');
+  }
+
+  /**
+   * Criar novo pedido.
+   * formaPagamento: 'dinheiro' | 'pix' | 'cartao' (default 'dinheiro').
+   * enderecoEntrega: opcional — backend usa o endereço cadastrado do usuário se ausente.
+   */
+  async criarPedido(distribuidorId, itens, formaPagamento = 'dinheiro', enderecoEntrega = null) {
     const idUsuario = this.getUserId();
-    
+
     if (!idUsuario) {
       throw new Error('Usuário não autenticado');
     }
 
-    return this.post('/pedidos', {
-      id_usuario: parseInt(idUsuario),
+    const payload = {
+      id_usuario: parseInt(idUsuario, 10),
       id_distribuidor: distribuidorId,
-      itens
-    });
+      itens,
+      forma_pagamento: formaPagamento
+    };
+
+    if (enderecoEntrega) {
+      payload.endereco_entrega = enderecoEntrega;
+    }
+
+    return this.post('/pedidos', payload);
   }
 
   /**
@@ -228,15 +245,18 @@ class ApiError extends Error {
   }
 }
 
-// Exportar instância única
+// Criar instância única
 const api = new ApiClient(CONFIG);
+
+// Disponibilizar globalmente para o navegador
+if (typeof window !== 'undefined') {
+  window.api = api;
+  window.ApiClient = ApiClient;
+  window.ApiError = ApiError;
+  window.API_CONFIG = API_CONFIG;
+}
 
 // Se for Node.js/CommonJS
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { api, ApiClient, ApiError, API_CONFIG };
-}
-
-// Se for ES Modules
-if (typeof export !== 'undefined') {
-  export { api, ApiClient, ApiError, API_CONFIG };
 }

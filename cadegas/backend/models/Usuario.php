@@ -1,6 +1,6 @@
 <?php
 // backend/models/Usuario.php
-//Modelo para representar os usuários. Centraliza a lógica de acesso aos dados dos usuários, facilitando a manutenção e organização do código.
+// Modelo dos usuários (consumidores). Centraliza acesso a dados.
 
 require_once __DIR__ . '/../config/database.php';
 
@@ -14,22 +14,35 @@ class Usuario
     }
 
     /**
-     * Cria um novo usuário no sistema
+     * Cria um novo usuário e retorna o ID gerado (ou null em falha).
+     * Endereço é opcional (US03 — pode ser informado depois).
      */
-    public function criar($nome, $email, $telefone, $senha)
+    public function criar($nome, $email, $telefone, $senha, $endereco = null, $cidade = null, $estado = null, $cep = null)
     {
         $hashSenha = password_hash($senha, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO usuario (nome, email, telefone, senha)
-                VALUES (:nome, :email, :telefone, :senha)";
+        $sql = "INSERT INTO usuario
+                  (nome, email, telefone, senha, endereco, cidade, estado, cep)
+                VALUES
+                  (:nome, :email, :telefone, :senha, :endereco, :cidade, :estado, :cep)";
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':nome', $nome);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':telefone', $telefone);
-        $stmt->bindParam(':senha', $hashSenha);
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':nome',     $nome,     PDO::PARAM_STR);
+            $stmt->bindValue(':email',    $email,    PDO::PARAM_STR);
+            $stmt->bindValue(':telefone', $telefone, PDO::PARAM_STR);
+            $stmt->bindValue(':senha',    $hashSenha, PDO::PARAM_STR);
+            $stmt->bindValue(':endereco', $endereco, $endereco === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':cidade',   $cidade,   $cidade   === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':estado',   $estado,   $estado   === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindValue(':cep',      $cep,      $cep      === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->execute();
 
-        return $stmt->execute();
+            return (int) $this->conn->lastInsertId();
+        } catch (PDOException $e) {
+            error_log('[Usuario::criar] ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -37,27 +50,75 @@ class Usuario
      */
     public function emailExiste($email)
     {
-        $sql = "SELECT id_usuario FROM usuario WHERE email = :email";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
-
-        return $stmt->rowCount() > 0;
+        try {
+            $sql = "SELECT id_usuario FROM usuario WHERE email = :email";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log('[Usuario::emailExiste] ' . $e->getMessage());
+            return false;
+        }
     }
+
     /**
-     * Busca usuário pelo e-mail
+     * Busca usuário pelo e-mail (linha completa, ou null)
      */
     public function buscarPorEmail($email)
     {
-        $sql = "SELECT *
-                FROM usuario
-                WHERE email = :email
-                LIMIT 1";
+        try {
+            $sql = "SELECT * FROM usuario WHERE email = :email LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (PDOException $e) {
+            error_log('[Usuario::buscarPorEmail] ' . $e->getMessage());
+            return null;
+        }
+    }
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+    /**
+     * Verifica se um id_usuario existe (auth fraca do MVP — evita pedido órfão).
+     */
+    public function existe($idUsuario)
+    {
+        try {
+            $sql = "SELECT 1 FROM usuario WHERE id_usuario = :id LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':id', (int) $idUsuario, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchColumn() !== false;
+        } catch (PDOException $e) {
+            error_log('[Usuario::existe] ' . $e->getMessage());
+            return false;
+        }
+    }
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    /**
+     * Busca o endereço cadastrado do usuário (snapshot para o pedido).
+     */
+    public function buscarEnderecoFormatado($idUsuario)
+    {
+        try {
+            $sql = "SELECT endereco, cidade, estado FROM usuario WHERE id_usuario = :id LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':id', (int) $idUsuario, PDO::PARAM_INT);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row || empty($row['endereco'])) {
+                return null;
+            }
+            $partes = array_filter([
+                $row['endereco'],
+                $row['cidade'] ? $row['cidade'] . ($row['estado'] ? '/' . $row['estado'] : '') : null,
+            ]);
+            return implode(' — ', $partes);
+        } catch (PDOException $e) {
+            error_log('[Usuario::buscarEnderecoFormatado] ' . $e->getMessage());
+            return null;
+        }
     }
 }

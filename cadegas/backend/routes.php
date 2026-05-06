@@ -1,86 +1,76 @@
 <?php
-//Rotas para o aplicativo
-//Define todos os endpoints do MVP
-//Direciona corretamente cada controller
-//Trata URLs com parâmetros ({id})
+// Rotas da API (front controller: public/index.php)
+// Cada bloco resolve uma rota e termina com exit.
 
-//Inclusão dos controllers
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/DistribuidorController.php';
+require_once __DIR__ . '/controllers/ProdutoController.php';
 require_once __DIR__ . '/controllers/PedidoController.php';
 
-//Captura método HTTP e URI
 $method = $_SERVER['REQUEST_METHOD'];
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+// Prefixo onde public/index.php é servido (configurável via .env)
+$basePath = $_ENV['ROUTES_BASE'] ?? '/cadegas/backend/public';
+if ($basePath !== '' && strpos($uri, $basePath) === 0) {
+    $uri = substr($uri, strlen($basePath));
+}
 
-// remove o caminho base do projeto
-$basePath = '/backend/public/index.php';
-$uri = str_replace($basePath, '', $uri);
-
-
-//Remove barra final (/login/ vira /login)
+if ($uri === '' || $uri === false) {
+    $uri = '/';
+}
 $uri = rtrim($uri, '/');
+if ($uri === '') {
+    $uri = '/';
+}
 
-
-//================================
-// ROTAS DE AUTENTICAÇÃO
 // ================================
-
-// POST /register
-//Permite que um consumidor crie uma conta no sistema para poder usar o aplicativo.
+// AUTENTICAÇÃO
+// ================================
 if ($uri === '/register' && $method === 'POST') {
     (new AuthController())->register();
     exit;
 }
-// POST /login
-//Permite que o consumidor acesse o sistema com suas credenciais
 if ($uri === '/login' && $method === 'POST') {
     (new AuthController())->login();
     exit;
 }
 
 // ================================
-// ROTAS DE DISTRIBUIDORES
+// DISTRIBUIDORES
 // ================================
-// GET/distribuidores
-//Mostra ao consumidor quais distribuidores estão ativos e disponíveis para pedido
 if ($uri === '/distribuidores' && $method === 'GET') {
     (new DistribuidorController())->listar();
     exit;
 }
-
-// GET /distribuidores/{id}/produtos
-//Mostra os produtos de um distribuidor específico, quando o consumidor escolhe um deles
 if (preg_match('#^/distribuidores/(\d+)/produtos$#', $uri, $matches) && $method === 'GET') {
-    $distribuidorId = $matches[1];
-    (new DistribuidorController())->listarProdutos($distribuidorId);
+    (new DistribuidorController())->listarProdutos((int) $matches[1]);
     exit;
 }
 
 // ================================
-// ROTAS DE PEDIDOS
+// PRODUTOS (lista geral, com info do distribuidor)
 // ================================
+if ($uri === '/produtos' && $method === 'GET') {
+    (new ProdutoController())->listarDisponiveis();
+    exit;
+}
 
-//POST /pedidos
-//Permite que o consumidor finalize o pedido
+// ================================
+// PEDIDOS
+// ================================
 if ($uri === '/pedidos' && $method === 'POST') {
     (new PedidoController())->criar();
     exit;
 }
-
-// GET /pedidos/{id}
 if (preg_match('#^/pedidos/(\d+)$#', $uri, $matches) && $method === 'GET') {
-    $pedidoId = $matches[1];
-    (new PedidoController())->buscar($pedidoId);
+    (new PedidoController())->buscar((int) $matches[1]);
     exit;
 }
 
 // ================================
-// ROTA NÃO ENCONTRADA
+// 404
 // ================================
-
 http_response_code(404);
-echo json_encode([
-    'erro' => 'Endpoint não encontrado'
-]);
+echo json_encode(['erro' => 'Endpoint não encontrado']);
+exit;

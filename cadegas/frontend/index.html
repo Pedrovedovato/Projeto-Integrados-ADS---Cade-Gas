@@ -1,8 +1,656 @@
-<html>
-    <head>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CadêGás - App de Entrega</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="container"></div>
 
-    </head>
-    <body>
-        
-    </body>
+    <script src="api-client.js"></script>
+    <script>
+        // ============================================
+        // APLICAÇÃO PRINCIPAL
+        // ============================================
+
+        class CadegasApp {
+            constructor() {
+                this.currentPage = 'login';
+                this.carrinho = [];
+                this.distribuidorSelecionado = null;
+            }
+
+            init() {
+                window.addEventListener('hashchange', () => this.render());
+                this.render();
+            }
+
+            render() {
+                const hash = window.location.hash.substring(1) || 'login';
+                this.currentPage = hash;
+
+                // Verificar autenticação
+                if (hash !== 'login' && hash !== 'register' && !api.isAuthenticated()) {
+                    window.location.hash = '#login';
+                    return;
+                }
+
+                const app = document.getElementById('app');
+                app.innerHTML = '';
+
+                switch (hash) {
+                    case 'login':
+                        this.renderLogin();
+                        break;
+                    case 'register':
+                        this.renderRegister();
+                        break;
+                    case 'distribuidores':
+                        this.renderDistribuidores();
+                        break;
+                    case 'produtos':
+                        this.renderProdutos();
+                        break;
+                    case 'carrinho':
+                        this.renderCarrinho();
+                        break;
+                    case 'pedido':
+                        this.renderPedido();
+                        break;
+                    default:
+                        window.location.hash = '#login';
+                }
+            }
+
+            // ============================================
+            // TELA DE LOGIN
+            // ============================================
+            renderLogin() {
+                document.getElementById('app').innerHTML = `
+                    <div class="auth-container">
+                        <div class="auth-card">
+                            <div class="logo">🚗 CadêGás</div>
+                            <h1>Login</h1>
+                            
+                            <form id="loginForm" class="form">
+                                <div class="form-group">
+                                    <label>E-mail</label>
+                                    <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Senha</label>
+                                    <input type="password" id="loginSenha" placeholder="••••••••" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                            </form>
+                            
+                            <p class="auth-link">
+                                Não tem conta? <a href="#register">Registre-se aqui</a>
+                            </p>
+                            
+                            <div class="demo-login">
+                                <p><strong>Demo:</strong> Use para testar:</p>
+                                <small>Email: demo@test.com | Senha: demo123</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('loginEmail').value;
+                    const senha = document.getElementById('loginSenha').value;
+
+                    try {
+                        const response = await api.login(email, senha);
+                        this.showToast(`Bem-vindo, ${response.nome}!`, 'success');
+                        setTimeout(() => {
+                            window.location.hash = '#produtos';
+                        }, 1000);
+                    } catch (error) {
+                        this.showToast(`Erro: ${error.message}`, 'error');
+                    }
+                });
+            }
+
+            // ============================================
+            // TELA DE REGISTRO
+            // ============================================
+            renderRegister() {
+                document.getElementById('app').innerHTML = `
+                    <div class="auth-container">
+                        <div class="auth-card">
+                            <div class="logo">🚗 CadêGás</div>
+                            <h1>Criar Conta</h1>
+                            
+                            <form id="registerForm" class="form">
+                                <div class="form-group">
+                                    <label>Nome Completo</label>
+                                    <input type="text" id="regNome" placeholder="João Silva" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>E-mail</label>
+                                    <input type="email" id="regEmail" placeholder="seu@email.com" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input type="tel" id="regTelefone" placeholder="(11) 98765-4321" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Senha</label>
+                                    <input type="password" id="regSenha" placeholder="••••••••" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-block">Registrar</button>
+                            </form>
+                            
+                            <p class="auth-link">
+                                Já tem conta? <a href="#login">Faça login</a>
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        const response = await api.register(
+                            document.getElementById('regNome').value,
+                            document.getElementById('regEmail').value,
+                            document.getElementById('regTelefone').value,
+                            document.getElementById('regSenha').value
+                        );
+                        
+                        this.showToast('Cadastro realizado! Faça login.', 'success');
+                        setTimeout(() => {
+                            window.location.hash = '#login';
+                        }, 1500);
+                    } catch (error) {
+                        this.showToast(`Erro: ${error.message}`, 'error');
+                    }
+                });
+            }
+
+            // ============================================
+            // TELA DE DISTRIBUIDORES
+            // ============================================
+            renderDistribuidores() {
+                document.getElementById('app').innerHTML = `
+                    <div class="header">
+                        <div class="header-content">
+                            <h1>🏪 Distribuidores</h1>
+                            <button class="btn btn-small" onclick="app.logout()">Sair</button>
+                        </div>
+                    </div>
+                    
+                    <div class="page-content">
+                        <div id="distribuidoresList" class="loading">
+                            Carregando distribuidores...
+                        </div>
+                    </div>
+                `;
+
+                this.loadDistribuidores();
+            }
+
+            async loadDistribuidores() {
+                try {
+                    const distribuidores = await api.listDistribuidores();
+                    this.distribuidores = distribuidores;
+
+                    let html = '<div class="distribuidores-grid">';
+
+                    if (distribuidores.length === 0) {
+                        html = '<p class="no-data">Nenhum distribuidor disponível</p>';
+                    } else {
+                        distribuidores.forEach(dist => {
+                            html += `
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>${dist.nome_empresa}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>CNPJ:</strong> ${dist.cnpj || 'N/A'}</p>
+                                        <p><strong>Telefone:</strong> ${dist.telefone || 'N/A'}</p>
+                                        <p><strong>Cidade:</strong> ${dist.cidade || '—'}${dist.estado ? ', ' + dist.estado : ''}</p>
+                                        <p><strong>Endereço:</strong> ${dist.endereco || '—'}</p>
+                                        <p><strong>Taxa de Entrega:</strong> R$ ${Number(dist.taxa_entrega).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        html += `
+                            <p style="margin-top:24px; text-align:center;">
+                                <button class="btn btn-primary" onclick="window.location.hash = '#produtos'">
+                                    Ver todos os produtos
+                                </button>
+                            </p>
+                        `;
+                    }
+
+                    document.getElementById('distribuidoresList').innerHTML = html;
+                } catch (error) {
+                    document.getElementById('distribuidoresList').innerHTML =
+                        `<div class="error-message">Erro ao carregar: ${error.message}</div>`;
+                }
+            }
+
+            // ============================================
+            // TELA DE PRODUTOS (lista geral pós-login)
+            // ============================================
+            renderProdutos() {
+                document.getElementById('app').innerHTML = `
+                    <div class="header">
+                        <div class="header-content">
+                            <button class="btn btn-small" onclick="app.sair()">🚪 Sair</button>
+                            <h1>🛒 Produtos disponíveis</h1>
+                            <span class="badge">${this.carrinho.length}</span>
+                        </div>
+                    </div>
+
+                    <div class="page-content">
+                        <div id="produtosList" class="loading">
+                            Carregando produtos...
+                        </div>
+                    </div>
+
+                    ${this.carrinho.length > 0 ? `
+                        <div class="floating-button">
+                            <button class="btn btn-primary btn-large" onclick="window.location.hash = '#carrinho'">
+                                Ver Carrinho (${this.carrinho.length})
+                            </button>
+                        </div>
+                    ` : ''}
+                `;
+
+                this.loadProdutos();
+            }
+
+            async loadProdutos() {
+                try {
+                    const response = await api.listAllProdutos();
+
+                    let html = '<div class="produtos-grid">';
+
+                    if (!response.produtos || response.produtos.length === 0) {
+                        html = '<p class="no-data">Nenhum produto disponível no momento</p>';
+                    } else {
+                        response.produtos.forEach(produto => {
+                            const nomeEscapado = String(produto.nome).replace(/'/g, "\\'");
+                            const distribuidorEscapado = String(produto.nome_empresa).replace(/'/g, "\\'");
+                            html += `
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4>${produto.nome}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>${produto.descricao || ''}</p>
+                                        <p><strong>Preço:</strong> R$ ${Number(produto.preco).toFixed(2)}</p>
+                                        <p><strong>Distribuidor:</strong> ${produto.nome_empresa}</p>
+                                        <p><strong>Taxa de entrega:</strong> R$ ${Number(produto.taxa_entrega).toFixed(2)}</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <input type="number" id="qty-${produto.id_produto}"
+                                               class="quantidade" min="0" max="99" value="0">
+                                        <button class="btn btn-primary"
+                                                onclick="app.adicionarCarrinho(${produto.id_produto}, '${nomeEscapado}', ${produto.preco}, ${produto.id_distribuidor}, '${distribuidorEscapado}', ${produto.taxa_entrega})">
+                                            Adicionar
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+
+                    document.getElementById('produtosList').innerHTML = html;
+                } catch (error) {
+                    document.getElementById('produtosList').innerHTML =
+                        `<div class="error-message">Erro ao carregar: ${error.message}</div>`;
+                }
+            }
+
+            adicionarCarrinho(produtoId, nome, preco, idDistribuidor, nomeDistribuidor, taxaEntrega) {
+                const qtdInput = document.getElementById(`qty-${produtoId}`);
+                const quantidade = parseInt(qtdInput.value, 10);
+
+                if (!quantidade || quantidade <= 0) {
+                    this.showToast('Digite uma quantidade válida', 'error');
+                    return;
+                }
+
+                const precoNum = Number(preco);
+                const taxaNum = Number(taxaEntrega);
+
+                // Regra do MVP: 1 pedido = 1 distribuidor.
+                // Se o carrinho já tem itens de outro distribuidor, confirmar antes de trocar.
+                if (this.carrinho.length > 0 && this.distribuidorAtual && this.distribuidorAtual.id_distribuidor !== idDistribuidor) {
+                    const trocar = window.confirm(
+                        `Você já tem itens de "${this.distribuidorAtual.nome_empresa}" no carrinho. ` +
+                        `Esvaziar e trocar para "${nomeDistribuidor}"?`
+                    );
+                    if (!trocar) {
+                        return;
+                    }
+                    this.carrinho = [];
+                    this.distribuidorAtual = null;
+                }
+
+                // Primeiro item — registra o distribuidor do carrinho.
+                if (this.carrinho.length === 0) {
+                    this.distribuidorAtual = {
+                        id_distribuidor: idDistribuidor,
+                        nome_empresa: nomeDistribuidor,
+                        taxa_entrega: taxaNum
+                    };
+                    this.distribuidorSelecionado = idDistribuidor;
+                }
+
+                // Insere/incrementa o item.
+                const existe = this.carrinho.find(item => item.id_produto === produtoId);
+                if (existe) {
+                    existe.quantidade += quantidade;
+                } else {
+                    this.carrinho.push({
+                        id_produto: produtoId,
+                        nome,
+                        preco: precoNum,
+                        quantidade
+                    });
+                }
+
+                qtdInput.value = 0;
+                this.showToast(`${nome} adicionado ao carrinho!`, 'success');
+                this.render();
+            }
+
+            sair() {
+                if (window.confirm('Deseja sair da sua conta?')) {
+                    api.logout();
+                    this.carrinho = [];
+                    this.distribuidorAtual = null;
+                    this.distribuidorSelecionado = null;
+                    window.location.hash = '#login';
+                }
+            }
+
+            novoPedido() {
+                // Reset do estado entre pedidos — volta pra lista de produtos limpa.
+                this.carrinho = [];
+                this.distribuidorAtual = null;
+                this.distribuidorSelecionado = null;
+                window.location.hash = '#produtos';
+            }
+
+            // ============================================
+            // TELA DO CARRINHO
+            // ============================================
+            renderCarrinho() {
+                document.getElementById('app').innerHTML = `
+                    <div class="header">
+                        <div class="header-content">
+                            <button class="btn btn-small" onclick="window.location.hash = '#produtos'">← Voltar</button>
+                            <h1>🛒 Carrinho</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="page-content">
+                        <div id="carrinhoContent"></div>
+                    </div>
+                `;
+
+                this.renderCarrinhoContent();
+            }
+
+            renderCarrinhoContent() {
+                let html = '';
+
+                if (this.carrinho.length === 0) {
+                    html = '<p class="no-data">Seu carrinho está vazio</p>';
+                } else {
+                    html = '<div class="carrinho-table">';
+                    let total = 0;
+
+                    this.carrinho.forEach((item, index) => {
+                        const subtotal = item.preco * item.quantidade;
+                        total += subtotal;
+
+                        html += `
+                            <div class="carrinho-item">
+                                <div class="item-info">
+                                    <h4>${item.nome}</h4>
+                                    <p>R$ ${Number(item.preco).toFixed(2)} x ${item.quantidade}</p>
+                                </div>
+                                <div class="item-total">
+                                    <p><strong>R$ ${subtotal.toFixed(2)}</strong></p>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="btn btn-small btn-danger" onclick="app.removerCarrinho(${index})">
+                                        Remover
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+
+                    const taxa = this.distribuidorAtual ? Number(this.distribuidorAtual.taxa_entrega) : 0;
+
+                    html += `
+                        <div class="carrinho-resumo">
+                            <div class="resumo-linha">
+                                <span>Subtotal:</span>
+                                <strong>R$ ${total.toFixed(2)}</strong>
+                            </div>
+                            <div class="resumo-linha">
+                                <span>Taxa de Entrega:</span>
+                                <strong>R$ ${taxa.toFixed(2)}</strong>
+                            </div>
+                            <div class="resumo-linha total">
+                                <span>Total:</span>
+                                <strong>R$ ${(total + taxa).toFixed(2)}</strong>
+                            </div>
+
+                            <div class="form-group" style="margin: 16px 0;">
+                                <label for="formaPagamentoSelect"><strong>Forma de pagamento (na entrega):</strong></label>
+                                <select id="formaPagamentoSelect" class="quantidade" style="width:100%;">
+                                    <option value="dinheiro" selected>Dinheiro</option>
+                                    <option value="pix">Pix</option>
+                                    <option value="cartao">Cartão</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary btn-block" onclick="app.finalizarPedido()">
+                                Finalizar Pedido
+                            </button>
+                            <button class="btn btn-secondary btn-block" onclick="window.location.hash = '#produtos'">
+                                Continuar Comprando
+                            </button>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('carrinhoContent').innerHTML = html;
+            }
+
+            removerCarrinho(index) {
+                this.carrinho.splice(index, 1);
+                this.renderCarrinhoContent();
+                this.showToast('Produto removido do carrinho', 'info');
+            }
+
+            async finalizarPedido() {
+                if (this.carrinho.length === 0) {
+                    this.showToast('Carrinho vazio', 'error');
+                    return;
+                }
+
+                try {
+                    const itens = this.carrinho.map(item => ({
+                        id_produto: item.id_produto,
+                        quantidade: item.quantidade
+                    }));
+
+                    const formaSelect = document.getElementById('formaPagamentoSelect');
+                    const formaPagamento = formaSelect ? formaSelect.value : 'dinheiro';
+
+                    const pedido = await api.criarPedido(this.distribuidorSelecionado, itens, formaPagamento);
+
+                    this.showToast('Pedido criado com sucesso!', 'success');
+                    
+                    // Armazenar ID do pedido e limpar carrinho
+                    localStorage.setItem('ultimo_pedido_id', pedido.id_pedido);
+                    this.carrinho = [];
+                    
+                    setTimeout(() => {
+                        window.location.hash = '#pedido';
+                    }, 1000);
+                } catch (error) {
+                    this.showToast(`Erro ao criar pedido: ${error.message}`, 'error');
+                }
+            }
+
+            // ============================================
+            // TELA DE PEDIDO
+            // ============================================
+            renderPedido() {
+                document.getElementById('app').innerHTML = `
+                    <div class="header">
+                        <div class="header-content">
+                            <h1>✅ Pedido Confirmado</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="page-content">
+                        <div id="pedidoContent" class="loading">
+                            Carregando detalhes do pedido...
+                        </div>
+                    </div>
+                `;
+
+                this.loadPedido();
+            }
+
+            async loadPedido() {
+                try {
+                    const pedidoId = localStorage.getItem('ultimo_pedido_id');
+                    
+                    if (!pedidoId) {
+                        throw new Error('Pedido não encontrado');
+                    }
+
+                    const response = await api.buscarPedido(pedidoId);
+                    const pedido = response.pedido;
+
+                    let html = `
+                        <div class="pedido-card">
+                            <div class="success-message">
+                                <div class="checkmark">✓</div>
+                                <h2>Pedido Confirmado!</h2>
+                            </div>
+                            
+                            <div class="pedido-info">
+                                <div class="info-row">
+                                    <span>ID do Pedido:</span>
+                                    <strong>#${pedido.id_pedido}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Status:</span>
+                                    <strong>${pedido.status || 'pendente'}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Data:</span>
+                                    <strong>${pedido.criado_em}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Subtotal:</span>
+                                    <strong>R$ ${Number(pedido.subtotal).toFixed(2)}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Taxa de Entrega:</span>
+                                    <strong>R$ ${Number(pedido.taxa_entrega).toFixed(2)}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Total:</span>
+                                    <strong>R$ ${Number(pedido.total).toFixed(2)}</strong>
+                                </div>
+                                <div class="info-row">
+                                    <span>Pagamento:</span>
+                                    <strong>${pedido.forma_pagamento || '—'}</strong>
+                                </div>
+                            </div>
+
+                            <h3>Itens do Pedido</h3>
+                            <div class="itens-list">
+                    `;
+
+                    response.itens.forEach(item => {
+                        html += `
+                            <div class="item-line">
+                                <span>${item.nome}</span>
+                                <span>${item.quantidade}x R$ ${Number(item.preco_unitario).toFixed(2)}</span>
+                                <span><strong>R$ ${Number(item.subtotal).toFixed(2)}</strong></span>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                            
+                            <div class="info-message">
+                                <p><strong>📞 ${response.mensagem}</strong></p>
+                            </div>
+                            
+                            <div class="button-group">
+                                <button class="btn btn-primary btn-block" onclick="app.novoPedido()">
+                                    Fazer Novo Pedido
+                                </button>
+                                <button class="btn btn-secondary btn-block" onclick="window.location.hash = '#pedido'">
+                                    Atualizar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('pedidoContent').innerHTML = html;
+                } catch (error) {
+                    document.getElementById('pedidoContent').innerHTML = 
+                        `<div class="error-message">Erro: ${error.message}</div>`;
+                }
+            }
+
+            // ============================================
+            // UTILITÁRIOS
+            // ============================================
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            logout() {
+                api.logout();
+                this.carrinho = [];
+                window.location.hash = '#login';
+            }
+        }
+
+        // Inicializar app
+        const app = new CadegasApp();
+        window.addEventListener('load', () => app.init());
+    </script>
+</body>
 </html>

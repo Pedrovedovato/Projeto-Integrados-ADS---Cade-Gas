@@ -4,20 +4,24 @@
 
 A API CadêGás é uma REST API desenvolvida em PHP que fornece endpoints para comunicação entre o frontend e o backend do sistema de entrega de gás e água.
 
-**Versão:** 1.0.0  
-**Base URL:** `http://localhost/backend/public` (desenvolvimento)
+**Versão:** 1.1.0
+**Base URL (dev):** `http://localhost/cadegas/backend/public`
+
+> O prefixo da URL é controlado por `ROUTES_BASE` no `.env`. Em produção, ajuste para o caminho onde o `public/` é servido.
 
 ---
 
 ## 🔑 Autenticação
 
-Atualmente, a API utiliza autenticação simples com email e senha. O ID do usuário é retornado no login e deve ser armazenado no frontend para requisições subsequentes.
+A API utiliza autenticação simples por e-mail e senha. O `id_usuario` é retornado no cadastro e no login; o frontend deve guardá-lo (ex.: `localStorage`) e enviá-lo no body de endpoints autenticados (ex.: `POST /pedidos`).
 
-**Fluxo de Autenticação:**
-1. Usuário faz registro em `/register`
-2. Usuário faz login em `/login`
-3. Frontend armazena o `id_usuario` retornado
-4. Este ID é incluído em futuras requisições (ex: criar pedidos)
+> Nesta versão **MVP**, o backend só verifica que o `id_usuario` enviado existe — não há token nem sessão. Auth completa (JWT/sessão) está prevista para o pós-MVP.
+
+**Fluxo:**
+1. `POST /register` — cria conta
+2. `POST /login` — devolve `id_usuario`
+3. Frontend armazena `id_usuario`
+4. Endpoints autenticados (ex.: `POST /pedidos`) recebem `id_usuario` no body
 
 ---
 
@@ -26,7 +30,7 @@ Atualmente, a API utiliza autenticação simples com email e senha. O ID do usu�
 ### 1️⃣ AUTENTICAÇÃO
 
 #### POST /register
-Cria uma nova conta de usuário no sistema.
+Cria uma nova conta de usuário.
 
 **Request Body:**
 ```json
@@ -34,26 +38,36 @@ Cria uma nova conta de usuário no sistema.
   "nome": "João Silva",
   "email": "joao@example.com",
   "telefone": "(11) 98765-4321",
-  "senha": "senha123"
+  "senha": "senha123",
+  "endereco": "Av. Paulista, 1000",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01310-100"
 }
 ```
+
+| Campo | Obrigatório | Observação |
+|-------|-------------|------------|
+| nome, email, telefone, senha | Sim | senha tem mínimo 6 caracteres |
+| endereco, cidade, estado, cep | Não | US03 — pode ser informado depois |
 
 **Responses:**
 - ✅ **201 Created**
   ```json
   {
-    "mensagem": "Usuário criado com sucesso",
+    "mensagem": "Usuário cadastrado com sucesso",
     "id_usuario": 1,
     "email": "joao@example.com"
   }
   ```
-- ❌ **400 Bad Request** - Dados obrigatórios não preenchidos
-- ❌ **409 Conflict** - E-mail já cadastrado
+- ❌ **400 Bad Request** — campos obrigatórios ausentes, e-mail inválido, ou senha < 6 caracteres
+- ❌ **409 Conflict** — e-mail já cadastrado
+- ❌ **500 Internal Server Error** — falha ao gravar no banco
 
 ---
 
 #### POST /login
-Autentica um usuário e retorna seus dados.
+Autentica um usuário existente.
 
 **Request Body:**
 ```json
@@ -70,18 +84,20 @@ Autentica um usuário e retorna seus dados.
     "mensagem": "Login realizado com sucesso",
     "id_usuario": 1,
     "nome": "João Silva",
-    "email": "joao@example.com"
+    "email": "joao@example.com",
+    "usuario": { "id": 1, "nome": "João Silva", "email": "joao@example.com" }
   }
   ```
-- ❌ **400 Bad Request** - E-mail ou senha não informados
-- ❌ **401 Unauthorized** - E-mail ou senha incorretos
+  > O bloco `usuario` é mantido por compatibilidade com clientes antigos.
+- ❌ **400 Bad Request** — e-mail ou senha não informados
+- ❌ **401 Unauthorized** — e-mail ou senha inválidos *(mensagem genérica para não revelar se o e-mail existe)*
 
 ---
 
 ### 2️⃣ DISTRIBUIDORES
 
 #### GET /distribuidores
-Lista todos os distribuidores ativos e disponíveis para pedido.
+Lista os distribuidores ativos.
 
 **Responses:**
 - ✅ **200 OK**
@@ -89,31 +105,48 @@ Lista todos os distribuidores ativos e disponíveis para pedido.
   [
     {
       "id_distribuidor": 1,
-      "nome_empresa": "Gás Brasil Distribuições",
-      "cnpj": "12.345.678/0001-99",
-      "responsavel": "João Manager",
-      "email": "contato@gasbrasil.com",
-      "telefone": "(11) 3456-7890",
-      "endereco": "Rua A, 123",
-      "cidade": "São Paulo",
+      "nome_empresa": "GásFácil Distribuidora",
+      "cnpj": "12.345.678/0001-90",
+      "telefone": "(13) 99000-0001",
+      "endereco": "Rua das Palmeiras, 100",
+      "cidade": "Bertioga",
       "estado": "SP",
-      "cep": "01310-100",
-      "latitude": -23.561684,
-      "longitude": -46.656139,
-      "taxa_entrega": 10.00,
-      "ativo": true
-    },
-    ...
+      "taxa_entrega": 8.00,
+      "ativo": 1
+    }
   ]
   ```
 
 ---
 
-#### GET /distribuidores/{id}/produtos
-Lista todos os produtos de um distribuidor específico.
+#### GET /produtos
+Lista **todos os produtos disponíveis** de qualquer distribuidor ativo. Inclui `nome_empresa` e `taxa_entrega` do distribuidor (do JOIN) — é o endpoint da tela inicial pós-login.
 
-**Path Parameters:**
-- `id` (integer) - ID do distribuidor
+**Responses:**
+- ✅ **200 OK**
+  ```json
+  {
+    "produtos": [
+      {
+        "id_produto": 1,
+        "id_distribuidor": 1,
+        "nome": "Botijão P13 (13 kg)",
+        "descricao": "Botijão residencial padrão",
+        "preco": 95.00,
+        "disponivel": 1,
+        "nome_empresa": "GásFácil Distribuidora",
+        "taxa_entrega": 8.00
+      }
+    ]
+  }
+  ```
+
+> Filtros aplicados pelo backend: `produto.disponivel = 1` E `distribuidor.ativo = 1`. Ordem: `nome` do produto, depois `nome_empresa`.
+
+---
+
+#### GET /distribuidores/{id}/produtos
+Lista os produtos **disponíveis** (`disponivel = 1`) de um distribuidor específico (filtro alternativo).
 
 **Responses:**
 - ✅ **200 OK**
@@ -124,18 +157,10 @@ Lista todos os produtos de um distribuidor específico.
       {
         "id_produto": 1,
         "id_distribuidor": 1,
-        "tipo": "Botijão P13",
-        "descricao": "Botijão de gás 13kg padrão",
-        "preco": 89.90,
-        "estoque": 50
-      },
-      {
-        "id_produto": 2,
-        "id_distribuidor": 1,
-        "tipo": "Galão de Água",
-        "descricao": "Galão de água mineral 20L",
-        "preco": 15.00,
-        "estoque": 100
+        "nome": "Botijão P13 (13 kg)",
+        "descricao": "Botijão residencial padrão",
+        "preco": 95.00,
+        "disponivel": 1
       }
     ]
   }
@@ -146,7 +171,7 @@ Lista todos os produtos de um distribuidor específico.
 ### 3️⃣ PEDIDOS
 
 #### POST /pedidos
-Cria um novo pedido de produtos.
+Cria um novo pedido. O backend calcula `subtotal`, `taxa_entrega` (snapshot do distribuidor) e `total`.
 
 **Request Body:**
 ```json
@@ -154,17 +179,21 @@ Cria um novo pedido de produtos.
   "id_usuario": 1,
   "id_distribuidor": 1,
   "itens": [
-    {
-      "id_produto": 1,
-      "quantidade": 2
-    },
-    {
-      "id_produto": 2,
-      "quantidade": 1
-    }
-  ]
+    { "id_produto": 1, "quantidade": 2 },
+    { "id_produto": 3, "quantidade": 1 }
+  ],
+  "forma_pagamento": "pix",
+  "endereco_entrega": "Av. Principal, 50"
 }
 ```
+
+| Campo | Obrigatório | Observação |
+|-------|-------------|------------|
+| id_usuario | Sim | precisa existir no banco (auth fraca do MVP) |
+| id_distribuidor | Sim | precisa estar ativo |
+| itens | Sim | array não vazio; cada item com `id_produto` e `quantidade > 0` |
+| forma_pagamento | Não | um de `dinheiro`, `pix`, `cartao` (default `dinheiro`) |
+| endereco_entrega | Não | se ausente, usa o endereço cadastrado do usuário |
 
 **Responses:**
 - ✅ **201 Created**
@@ -172,18 +201,23 @@ Cria um novo pedido de produtos.
   {
     "mensagem": "Pedido criado com sucesso",
     "id_pedido": 5,
-    "total": 189.80
+    "subtotal": 215.00,
+    "taxa_entrega": 8.00,
+    "total": 223.00,
+    "forma_pagamento": "pix",
+    "status": "pendente"
   }
   ```
-- ❌ **400 Bad Request** - Dados obrigatórios não preenchidos
+- ❌ **400 Bad Request** — payload inválido, item inválido, produto não pertence ao distribuidor informado, ou forma de pagamento inválida
+- ❌ **401 Unauthorized** — `id_usuario` não existe
+- ❌ **404 Not Found** — distribuidor ou produto não existe
+- ❌ **409 Conflict** — distribuidor inativo ou produto indisponível
+- ❌ **500 Internal Server Error** — falha na transação (pedido + itens fazem rollback)
 
 ---
 
 #### GET /pedidos/{id}
-Recupera os detalhes completos de um pedido.
-
-**Path Parameters:**
-- `id` (integer) - ID do pedido
+Recupera os detalhes de um pedido.
 
 **Responses:**
 - ✅ **200 OK**
@@ -193,29 +227,28 @@ Recupera os detalhes completos de um pedido.
       "id_pedido": 5,
       "id_usuario": 1,
       "id_distribuidor": 1,
-      "total": 189.80,
-      "criado_em": "2024-05-05 10:30:00"
+      "status": "pendente",
+      "subtotal": 215.00,
+      "taxa_entrega": 8.00,
+      "total": 223.00,
+      "forma_pagamento": "pix",
+      "endereco_entrega": "Av. Principal, 50",
+      "criado_em": "2026-05-06 10:30:00"
     },
     "itens": [
       {
-        "id_item": 1,
         "id_produto": 1,
+        "nome": "Botijão P13 (13 kg)",
+        "descricao": "Botijão residencial padrão",
         "quantidade": 2,
-        "preco_unitario": 89.90,
-        "subtotal": 179.80
-      },
-      {
-        "id_item": 2,
-        "id_produto": 2,
-        "quantidade": 1,
-        "preco_unitario": 15.00,
-        "subtotal": 15.00
+        "preco_unitario": 95.00,
+        "subtotal": 190.00
       }
     ],
     "mensagem": "O distribuidor entrará em contato para confirmar a entrega"
   }
   ```
-- ❌ **404 Not Found** - Pedido não encontrado
+- ❌ **404 Not Found** — pedido não encontrado
 
 ---
 
@@ -225,43 +258,26 @@ Recupera os detalhes completos de um pedido.
 
 #### 1. Registrar Usuário
 ```javascript
-async function registrar(nome, email, telefone, senha) {
-  const response = await fetch('http://localhost/backend/public/register', {
+async function registrar(dados) {
+  const response = await fetch('http://localhost/cadegas/backend/public/register', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      nome,
-      email,
-      telefone,
-      senha
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados) // { nome, email, telefone, senha, endereco?, cidade?, estado?, cep? }
   });
-  
-  return await response.json();
+  return response.json();
 }
 ```
 
 #### 2. Fazer Login
 ```javascript
 async function login(email, senha) {
-  const response = await fetch('http://localhost/backend/public/login', {
+  const response = await fetch('http://localhost/cadegas/backend/public/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      email,
-      senha
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha })
   });
-  
   const data = await response.json();
-  if (response.ok) {
-    // Armazenar o ID do usuário
-    localStorage.setItem('id_usuario', data.id_usuario);
-  }
+  if (response.ok) localStorage.setItem('id_usuario', data.id_usuario);
   return data;
 }
 ```
@@ -269,8 +285,8 @@ async function login(email, senha) {
 #### 3. Listar Distribuidores
 ```javascript
 async function listarDistribuidores() {
-  const response = await fetch('http://localhost/backend/public/distribuidores');
-  return await response.json();
+  const response = await fetch('http://localhost/cadegas/backend/public/distribuidores');
+  return response.json();
 }
 ```
 
@@ -278,30 +294,28 @@ async function listarDistribuidores() {
 ```javascript
 async function listarProdutos(distribuidorId) {
   const response = await fetch(
-    `http://localhost/backend/public/distribuidores/${distribuidorId}/produtos`
+    `http://localhost/cadegas/backend/public/distribuidores/${distribuidorId}/produtos`
   );
-  return await response.json();
+  return response.json();
 }
 ```
 
 #### 5. Criar Pedido
 ```javascript
-async function criarPedido(idDistribuidor, itens) {
-  const idUsuario = localStorage.getItem('id_usuario');
-  
-  const response = await fetch('http://localhost/backend/public/pedidos', {
+async function criarPedido(idDistribuidor, itens, formaPagamento = 'dinheiro') {
+  const idUsuario = parseInt(localStorage.getItem('id_usuario'), 10);
+
+  const response = await fetch('http://localhost/cadegas/backend/public/pedidos', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      id_usuario: parseInt(idUsuario),
+      id_usuario: idUsuario,
       id_distribuidor: idDistribuidor,
-      itens
+      itens, // [{ id_produto, quantidade }, ...]
+      forma_pagamento: formaPagamento // 'dinheiro' | 'pix' | 'cartao'
     })
   });
-  
-  return await response.json();
+  return response.json();
 }
 ```
 
@@ -309,9 +323,9 @@ async function criarPedido(idDistribuidor, itens) {
 ```javascript
 async function buscarPedido(pedidoId) {
   const response = await fetch(
-    `http://localhost/backend/public/pedidos/${pedidoId}`
+    `http://localhost/cadegas/backend/public/pedidos/${pedidoId}`
   );
-  return await response.json();
+  return response.json();
 }
 ```
 
@@ -322,31 +336,28 @@ async function buscarPedido(pedidoId) {
 ```
 1. Usuário abre o app
    ↓
-2. Verifica se está autenticado (verifica localStorage)
-   ├─ Se NÃO: mostra tela de login/registro
-   │  └─ Usuario faz login/registro
-   └─ Se SIM: continua
+2. Verifica se está autenticado (localStorage.id_usuario)
+   ├─ Não: tela de login/registro
+   └─ Sim: continua
    ↓
-3. Carrega lista de distribuidores (GET /distribuidores)
+3. GET /distribuidores  →  lista os distribuidores ativos
    ↓
-4. Usuário seleciona distribuidor
+4. Usuário escolhe distribuidor
    ↓
-5. Carrega produtos (GET /distribuidores/{id}/produtos)
+5. GET /distribuidores/{id}/produtos  →  produtos disponíveis
    ↓
-6. Usuário seleciona produtos e quantidades
+6. Usuário monta o carrinho e escolhe forma de pagamento
    ↓
-7. Usuário confirma pedido
+7. POST /pedidos  →  cria o pedido (subtotal + taxa = total)
    ↓
-8. Cria pedido (POST /pedidos)
+8. Tela de confirmação com id_pedido, subtotal, taxa, total
    ↓
-9. Mostra confirmação com ID do pedido
-   ↓
-10. Usuário pode consultar pedido (GET /pedidos/{id})
+9. (Opcional) GET /pedidos/{id}  →  consulta o pedido
 ```
 
 ---
 
-## 📝 Estrutura de Dados
+## 📝 Estrutura de Dados (resumo)
 
 ### Usuário
 ```json
@@ -355,19 +366,21 @@ async function buscarPedido(pedidoId) {
   "nome": "João Silva",
   "email": "joao@example.com",
   "telefone": "(11) 98765-4321",
-  "ativo": true,
-  "criado_em": "2024-05-05 10:30:00"
+  "endereco": "Av. Paulista, 1000",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01310-100",
+  "ativo": true
 }
 ```
 
-### Distribuidor
+### Distribuidor (linha completa)
 ```json
 {
   "id_distribuidor": 1,
-  "nome_empresa": "Gás Brasil",
-  "cnpj": "12.345.678/0001-99",
-  "taxa_entrega": 10.00,
-  "ativo": true
+  "nome_empresa": "GásFácil Distribuidora",
+  "taxa_entrega": 8.00,
+  "ativo": 1
 }
 ```
 
@@ -375,26 +388,26 @@ async function buscarPedido(pedidoId) {
 ```json
 {
   "id_produto": 1,
-  "tipo": "Botijão P13",
-  "preco": 89.90,
-  "estoque": 50
+  "id_distribuidor": 1,
+  "nome": "Botijão P13 (13 kg)",
+  "descricao": "Botijão residencial padrão",
+  "preco": 95.00,
+  "disponivel": 1
 }
 ```
 
-### Pedido
+### Pedido (linha completa)
 ```json
 {
   "id_pedido": 1,
   "id_usuario": 1,
   "id_distribuidor": 1,
-  "total": 189.80,
-  "itens": [
-    {
-      "id_produto": 1,
-      "quantidade": 2,
-      "preco_unitario": 89.90
-    }
-  ]
+  "status": "pendente",
+  "subtotal": 190.00,
+  "taxa_entrega": 8.00,
+  "total": 198.00,
+  "forma_pagamento": "pix",
+  "endereco_entrega": "Av. Principal, 50"
 }
 ```
 
@@ -402,37 +415,36 @@ async function buscarPedido(pedidoId) {
 
 ## 🐛 Códigos de Erro
 
-| Código | Significado | Ação |
-|--------|-------------|------|
+| Código | Significado | Quando aparece |
+|--------|-------------|----------------|
 | **200** | OK | Requisição bem-sucedida |
 | **201** | Created | Recurso criado com sucesso |
-| **400** | Bad Request | Dados inválidos ou incompletos |
-| **401** | Unauthorized | Credenciais incorretas |
-| **404** | Not Found | Recurso não encontrado |
-| **409** | Conflict | Recurso já existe (ex: email duplicado) |
-| **500** | Server Error | Erro no servidor |
+| **400** | Bad Request | Dados inválidos, item inválido, e-mail mal formado, forma de pagamento inválida |
+| **401** | Unauthorized | Credenciais inválidas no login; `id_usuario` inexistente em `POST /pedidos` |
+| **404** | Not Found | Pedido / distribuidor / produto inexistente |
+| **409** | Conflict | E-mail já cadastrado, distribuidor inativo, produto indisponível |
+| **500** | Server Error | Falha de banco / transação |
+
+Resposta de erro tem sempre o formato `{"erro": "mensagem"}`.
 
 ---
 
 ## 📖 Visualizar API Interativamente
 
-Você pode usar ferramentas como:
-- **Swagger UI**: Cole o conteúdo de `swagger.json` no [editor online do Swagger](https://editor.swagger.io/)
-- **Postman**: Importe o arquivo `swagger.json`
-- **Insomnia**: Importe o arquivo `swagger.json`
+- **Swagger UI:** cole `swagger.json` em [editor.swagger.io](https://editor.swagger.io/)
+- **Postman / Insomnia:** importe `swagger.json`
 
 ---
 
-## 🚀 Próximos Passos
+## 🚀 Próximos Passos (fora do escopo P0)
 
-- [ ] Implementar autenticação com tokens (JWT)
-- [ ] Adicionar validação de endereço do usuário
-- [ ] Filtrar distribuidores por proximidade
+- [ ] Autenticação com tokens (JWT/sessão)
+- [ ] Endpoints `GET /usuarios/{id}/pedidos`, `PATCH /pedidos/{id}/status`, `DELETE /pedidos/{id}`
+- [ ] Filtrar distribuidores por proximidade (`latitude`/`longitude` já no schema)
 - [ ] Rastreamento de pedidos em tempo real
 - [ ] Sistema de avaliação de distribuidores
-- [ ] Integração com sistema de pagamento
+- [ ] Integração com sistema de pagamento online
 
 ---
 
-**Última atualização:** 05/05/2024  
-**Desenvolvido por:** Time de Desenvolvimento CadêGás
+**Última atualização:** 06/05/2026
