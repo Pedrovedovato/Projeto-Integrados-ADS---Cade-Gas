@@ -6,6 +6,7 @@ require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/DistribuidorController.php';
 require_once __DIR__ . '/controllers/ProdutoController.php';
 require_once __DIR__ . '/controllers/PedidoController.php';
+require_once __DIR__ . '/controllers/UsuarioController.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -33,6 +34,14 @@ if ($uri === '/register' && $method === 'POST') {
 }
 if ($uri === '/login' && $method === 'POST') {
     (new AuthController())->login();
+    exit;
+}
+
+// ================================
+// USUÁRIOS
+// ================================
+if (preg_match('#^/usuarios/(\d+)$#', $uri, $matches) && $method === 'GET') {
+    (new UsuarioController())->buscar((int) $matches[1]);
     exit;
 }
 

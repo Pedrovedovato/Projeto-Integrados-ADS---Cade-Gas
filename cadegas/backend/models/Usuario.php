@@ -98,6 +98,50 @@ class Usuario
     }
 
     /**
+     * Busca usuário completo pelo ID para exibir perfil
+     * GET /usuarios/{id}
+     */
+    public function buscarPorId($idUsuario)
+    {
+        try {
+            $sql = "SELECT 
+                        id_usuario,
+                        nome,
+                        email,
+                        telefone,
+                        endereco,
+                        cidade,
+                        estado,
+                        cep
+                    FROM usuario 
+                    WHERE id_usuario = :id LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':id', (int) $idUsuario, PDO::PARAM_INT);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$row) {
+                return null;
+            }
+            
+            // Converter id_usuario para inteiro
+            $row['id_usuario'] = (int) $row['id_usuario'];
+            
+            // Garantir que campos nulos sejam strings vazias
+            $row['telefone'] = $row['telefone'] ?? '';
+            $row['endereco'] = $row['endereco'] ?? '';
+            $row['cidade'] = $row['cidade'] ?? '';
+            $row['estado'] = $row['estado'] ?? '';
+            $row['cep'] = $row['cep'] ?? '';
+            
+            return $row;
+        } catch (PDOException $e) {
+            error_log('[Usuario::buscarPorId] ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Busca o endereço cadastrado do usuário (snapshot para o pedido).
      */
     public function buscarEnderecoFormatado($idUsuario)

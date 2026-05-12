@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Endpoint GET /usuarios/{id}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .response-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .response-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .status-badge.success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-badge.error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .status-badge.loading {
+            background: #2196f3;
+            color: white;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #1565c0;
+            font-size: 14px;
+        }
+        
+        .test-cases {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .test-cases h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .test-case {
+            display: inline-block;
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .test-case:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Endpoint</h1>
+        <p class="subtitle">GET /usuarios/{id} - Buscar perfil do usuário</p>
+        
+        <div class="info-box">
+            ℹ️ Digite o ID de um usuário para buscar seus dados completos. Use IDs 1, 2, 3... que existem no banco.
+        </div>
+        
+        <form id="testForm">
+            <div class="form-group">
+                <label for="userId">ID do Usuário:</label>
+                <input 
+                    type="number" 
+                    id="userId" 
+                    placeholder="Ex: 1" 
+                    min="1" 
+                    value="1"
+                    required
+                >
+            </div>
+            
+            <button type="submit">🔍 Buscar Dados</button>
+        </form>
+        
+        <div class="test-cases">
+            <h3>⚡ Testes Rápidos:</h3>
+            <div class="test-case" onclick="testWithId(1)">ID: 1</div>
+            <div class="test-case" onclick="testWithId(2)">ID: 2</div>
+            <div class="test-case" onclick="testWithId(999)">ID: 999 (erro)</div>
+        </div>
+        
+        <div id="responseSection" class="response-section hidden">
+            <div class="response-header">
+                <h2>📋 Resposta da API</h2>
+                <span id="statusBadge" class="status-badge"></span>
+            </div>
+            <pre id="responseBody"></pre>
+        </div>
+    </div>
+    
+    <script>
+        const testForm = document.getElementById('testForm');
+        const userIdInput = document.getElementById('userId');
+        const responseSection = document.getElementById('responseSection');
+        const statusBadge = document.getElementById('statusBadge');
+        const responseBody = document.getElementById('responseBody');
+        
+        testForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await testWithId(parseInt(userIdInput.value));
+        });
+        
+        async function testWithId(id) {
+            userIdInput.value = id;
+            responseSection.classList.remove('hidden');
+            statusBadge.className = 'status-badge loading';
+            statusBadge.textContent = '⏳ Carregando...';
+            responseBody.textContent = 'Aguardando resposta...';
+            
+            try {
+                const url = `/cadegas/backend/public/usuarios/${id}`;
+                console.log('Fazendo requisição para:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                const statusCode = response.status;
+                
+                // Atualizar badge de status
+                statusBadge.textContent = `${statusCode} ${response.statusText}`;
+                if (statusCode === 200) {
+                    statusBadge.className = 'status-badge success';
+                } else {
+                    statusBadge.className = 'status-badge error';
+                }
+                
+                // Exibir resposta formatada
+                responseBody.textContent = JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                statusBadge.className = 'status-badge error';
+                statusBadge.textContent = '❌ Erro';
+                responseBody.textContent = `Erro na requisição:\n\n${error.message}\n\nVerifique se:\n1. O servidor está rodando\n2. A URL está correta\n3. O banco de dados está acessível`;
+                console.error('Erro:', error);
+            }
+        }
+        
+        // Carregar primeiro usuário ao abrir a página
+        window.addEventListener('load', () => {
+            testWithId(1);
+        });
+    </script>
+</body>
+</html>
