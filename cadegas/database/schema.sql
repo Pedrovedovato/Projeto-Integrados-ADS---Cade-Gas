@@ -261,11 +261,14 @@ VALUES
   (3, 'Botijão P13 (13 kg)',  'Botijão residencial padrão',      90.00),
   (3, 'Botijão P2 (2 kg)',    'Botijão portátil para camping',   35.00);
 
+-- Usuário de seed para desenvolvimento.
+-- E-mail: maria@email.com  |  Senha: senha123
+-- Hash bcrypt (cost 10) gerado com: php -r "echo password_hash('senha123', PASSWORD_DEFAULT);"
 INSERT INTO usuario
   (nome, email, senha, telefone, endereco, cidade, estado, cep)
 VALUES
   ('Maria Souza', 'maria@email.com',
-   '$2y$10$HASH_PLACEHOLDER_SUBSTITUIR_NO_PHP',
+   '$2y$10$Wqp.HE2miPGLbuXOFtbTWOB6cLoRaDwRS99p.4Zgp2yKwreHtxrrG',
    '(13) 98888-1234', 'Av. Principal, 50', 'Bertioga', 'SP', '11250-100');
 
 INSERT INTO pedido

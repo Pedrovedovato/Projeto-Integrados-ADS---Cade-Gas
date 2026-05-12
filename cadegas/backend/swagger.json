@@ -1,0 +1,459 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CadêGás API",
+    "version": "1.1.0",
+    "description": "API REST para plataforma de entrega de gás e água (CadêGás MVP)",
+    "contact": {
+      "name": "Time de Desenvolvimento"
+    }
+  },
+  "host": "localhost",
+  "basePath": "/cadegas/backend/public",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Registrar novo usuário",
+        "description": "Cria uma conta de consumidor. Endereço é opcional (US03).",
+        "operationId": "registerUser",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados do novo usuário",
+            "required": true,
+            "schema": { "$ref": "#/definitions/RegistroRequest" }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuário cadastrado com sucesso",
+            "schema": { "$ref": "#/definitions/RegistroResponse" }
+          },
+          "400": {
+            "description": "Dados obrigatórios ausentes, e-mail inválido ou senha < 6 caracteres",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "409": {
+            "description": "E-mail já cadastrado",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "500": {
+            "description": "Falha ao gravar no banco",
+            "schema": { "$ref": "#/definitions/Erro" }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Fazer login",
+        "description": "Autentica o consumidor e retorna o id_usuario.",
+        "operationId": "loginUser",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Credenciais do usuário",
+            "required": true,
+            "schema": { "$ref": "#/definitions/LoginRequest" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "schema": { "$ref": "#/definitions/LoginResponse" }
+          },
+          "400": {
+            "description": "E-mail ou senha não informados",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "401": {
+            "description": "E-mail ou senha inválidos",
+            "schema": { "$ref": "#/definitions/Erro" }
+          }
+        }
+      }
+    },
+    "/distribuidores": {
+      "get": {
+        "tags": ["Distribuidores"],
+        "summary": "Listar distribuidores ativos",
+        "description": "Retorna os distribuidores com ativo = 1.",
+        "operationId": "listDistribuidores",
+        "responses": {
+          "200": {
+            "description": "Lista de distribuidores",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/DistribuidorResumo" }
+            }
+          }
+        }
+      }
+    },
+    "/produtos": {
+      "get": {
+        "tags": ["Produtos"],
+        "summary": "Listar todos os produtos disponíveis (qualquer distribuidor ativo)",
+        "description": "Endpoint da tela inicial pós-login. Retorna produtos com disponivel = 1 cujo distribuidor tem ativo = 1, incluindo nome_empresa e taxa_entrega do distribuidor.",
+        "operationId": "listAllProdutos",
+        "responses": {
+          "200": {
+            "description": "Lista de produtos",
+            "schema": { "$ref": "#/definitions/ProdutosListaResponse" }
+          }
+        }
+      }
+    },
+    "/distribuidores/{id}/produtos": {
+      "get": {
+        "tags": ["Distribuidores"],
+        "summary": "Listar produtos disponíveis de um distribuidor",
+        "description": "Retorna apenas produtos com disponivel = 1.",
+        "operationId": "listProdutosByDistribuidor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do distribuidor",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Produtos do distribuidor",
+            "schema": { "$ref": "#/definitions/ProdutosResponse" }
+          }
+        }
+      }
+    },
+    "/pedidos": {
+      "post": {
+        "tags": ["Pedidos"],
+        "summary": "Criar novo pedido",
+        "description": "O backend valida itens, busca a taxa de entrega do distribuidor e calcula subtotal/total. Operação atômica (transação).",
+        "operationId": "criarPedido",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Dados do pedido",
+            "required": true,
+            "schema": { "$ref": "#/definitions/CriarPedidoRequest" }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pedido criado com sucesso",
+            "schema": { "$ref": "#/definitions/CriarPedidoResponse" }
+          },
+          "400": {
+            "description": "Payload inválido, item inválido, produto fora do distribuidor, ou forma de pagamento inválida",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "401": {
+            "description": "id_usuario não existe (auth fraca do MVP)",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "404": {
+            "description": "Distribuidor ou produto não encontrado",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "409": {
+            "description": "Distribuidor inativo ou produto indisponível",
+            "schema": { "$ref": "#/definitions/Erro" }
+          },
+          "500": {
+            "description": "Falha na transação (rollback aplicado)",
+            "schema": { "$ref": "#/definitions/Erro" }
+          }
+        }
+      }
+    },
+    "/pedidos/{id}": {
+      "get": {
+        "tags": ["Pedidos"],
+        "summary": "Buscar detalhes do pedido",
+        "description": "Retorna o pedido completo (status, valores, forma de pagamento) com seus itens.",
+        "operationId": "buscarPedido",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do pedido",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do pedido",
+            "schema": { "$ref": "#/definitions/PedidoResponse" }
+          },
+          "404": {
+            "description": "Pedido não encontrado",
+            "schema": { "$ref": "#/definitions/Erro" }
+          }
+        }
+      }
+    },
+    "/usuarios/{id}": {
+      "get": {
+        "tags": ["Usuários"],
+        "summary": "Buscar perfil completo do usuário",
+        "description": "Retorna todos os dados do perfil de um usuário específico. Utilizado para exibir informações completas no checkout do pedido.",
+        "operationId": "buscarUsuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do usuário",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados completos do usuário",
+            "schema": { "$ref": "#/definitions/UsuarioPerfil" }
+          },
+          "404": {
+            "description": "Usuário não encontrado",
+            "schema": { "$ref": "#/definitions/Erro" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RegistroRequest": {
+      "type": "object",
+      "required": ["nome", "email", "telefone", "senha"],
+      "properties": {
+        "nome":     { "type": "string", "example": "João Silva" },
+        "email":    { "type": "string", "format": "email", "example": "joao@example.com" },
+        "telefone": { "type": "string", "example": "(11) 98765-4321" },
+        "senha":    { "type": "string", "format": "password", "minLength": 6, "example": "senha123" },
+        "endereco": { "type": "string", "example": "Av. Paulista, 1000" },
+        "cidade":   { "type": "string", "example": "São Paulo" },
+        "estado":   { "type": "string", "example": "SP" },
+        "cep":      { "type": "string", "example": "01310-100" }
+      }
+    },
+    "RegistroResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem":   { "type": "string", "example": "Usuário cadastrado com sucesso" },
+        "id_usuario": { "type": "integer", "format": "int32", "example": 1 },
+        "email":      { "type": "string", "example": "joao@example.com" }
+      }
+    },
+    "LoginRequest": {
+      "type": "object",
+      "required": ["email", "senha"],
+      "properties": {
+        "email": { "type": "string", "format": "email", "example": "maria@email.com" },
+        "senha": { "type": "string", "format": "password", "example": "senha123" }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem":   { "type": "string", "example": "Login realizado com sucesso" },
+        "id_usuario": { "type": "integer", "format": "int32", "example": 1 },
+        "nome":       { "type": "string", "example": "Maria Souza" },
+        "email":      { "type": "string", "example": "maria@email.com" },
+        "usuario": {
+          "type": "object",
+          "description": "Mantido por compatibilidade com clientes antigos.",
+          "properties": {
+            "id":    { "type": "integer", "format": "int32", "example": 1 },
+            "nome":  { "type": "string", "example": "Maria Souza" },
+            "email": { "type": "string", "example": "maria@email.com" }
+          }
+        }
+      }
+    },
+    "DistribuidorResumo": {
+      "type": "object",
+      "properties": {
+        "id_distribuidor": { "type": "integer", "format": "int32", "example": 1 },
+        "nome_empresa":    { "type": "string",  "example": "GásFácil Distribuidora" },
+        "cnpj":            { "type": "string",  "example": "12.345.678/0001-90" },
+        "telefone":        { "type": "string",  "example": "(13) 99000-0001" },
+        "endereco":        { "type": "string",  "example": "Rua das Palmeiras, 100" },
+        "cidade":          { "type": "string",  "example": "Bertioga" },
+        "estado":          { "type": "string",  "example": "SP" },
+        "taxa_entrega":    { "type": "number",  "format": "double",  "example": 8.00 },
+        "ativo":           { "type": "integer", "format": "int32",   "example": 1 }
+      }
+    },
+    "Produto": {
+      "type": "object",
+      "properties": {
+        "id_produto":      { "type": "integer", "format": "int32",  "example": 1 },
+        "id_distribuidor": { "type": "integer", "format": "int32",  "example": 1 },
+        "nome":            { "type": "string",  "example": "Botijão P13 (13 kg)" },
+        "descricao":       { "type": "string",  "example": "Botijão residencial padrão" },
+        "preco":           { "type": "number",  "format": "double", "example": 95.00 },
+        "disponivel":      { "type": "integer", "format": "int32",  "example": 1 }
+      }
+    },
+    "ProdutosResponse": {
+      "type": "object",
+      "properties": {
+        "distribuidor_id": { "type": "integer", "format": "int32", "example": 1 },
+        "produtos": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Produto" }
+        }
+      }
+    },
+    "ProdutoComDistribuidor": {
+      "type": "object",
+      "properties": {
+        "id_produto":      { "type": "integer", "format": "int32",  "example": 1 },
+        "id_distribuidor": { "type": "integer", "format": "int32",  "example": 1 },
+        "nome":            { "type": "string",  "example": "Botijão P13 (13 kg)" },
+        "descricao":       { "type": "string",  "example": "Botijão residencial padrão" },
+        "preco":           { "type": "number",  "format": "double", "example": 95.00 },
+        "disponivel":      { "type": "integer", "format": "int32",  "example": 1 },
+        "nome_empresa":    { "type": "string",  "example": "GásFácil Distribuidora" },
+        "taxa_entrega":    { "type": "number",  "format": "double", "example": 8.00 }
+      }
+    },
+    "ProdutosListaResponse": {
+      "type": "object",
+      "properties": {
+        "produtos": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ProdutoComDistribuidor" }
+        }
+      }
+    },
+    "ItemPedidoRequest": {
+      "type": "object",
+      "required": ["id_produto", "quantidade"],
+      "properties": {
+        "id_produto": { "type": "integer", "format": "int32", "example": 1 },
+        "quantidade": { "type": "integer", "format": "int32", "minimum": 1, "example": 2 }
+      }
+    },
+    "ItemPedido": {
+      "type": "object",
+      "properties": {
+        "id_produto":     { "type": "integer", "format": "int32",  "example": 1 },
+        "nome":           { "type": "string",  "example": "Botijão P13 (13 kg)" },
+        "descricao":      { "type": "string",  "example": "Botijão residencial padrão" },
+        "quantidade":     { "type": "integer", "format": "int32",  "example": 2 },
+        "preco_unitario": { "type": "number",  "format": "double", "example": 95.00 },
+        "subtotal":       { "type": "number",  "format": "double", "example": 190.00 }
+      }
+    },
+    "CriarPedidoRequest": {
+      "type": "object",
+      "required": ["id_usuario", "id_distribuidor", "itens"],
+      "properties": {
+        "id_usuario":      { "type": "integer", "format": "int32", "example": 1 },
+        "id_distribuidor": { "type": "integer", "format": "int32", "example": 1 },
+        "itens": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/ItemPedidoRequest" }
+        },
+        "forma_pagamento": {
+          "type": "string",
+          "enum": ["dinheiro", "pix", "cartao"],
+          "default": "dinheiro",
+          "example": "pix"
+        },
+        "endereco_entrega": {
+          "type": "string",
+          "description": "Se ausente, usa o endereço cadastrado do usuário.",
+          "example": "Av. Principal, 50"
+        }
+      }
+    },
+    "CriarPedidoResponse": {
+      "type": "object",
+      "properties": {
+        "mensagem":        { "type": "string", "example": "Pedido criado com sucesso" },
+        "id_pedido":       { "type": "integer", "format": "int32", "example": 5 },
+        "subtotal":        { "type": "number", "format": "double", "example": 215.00 },
+        "taxa_entrega":    { "type": "number", "format": "double", "example": 8.00 },
+        "total":           { "type": "number", "format": "double", "example": 223.00 },
+        "forma_pagamento": { "type": "string", "example": "pix" },
+        "status":          { "type": "string", "example": "pendente" }
+      }
+    },
+    "PedidoDetalhes": {
+      "type": "object",
+      "properties": {
+        "id_pedido":        { "type": "integer", "format": "int32", "example": 5 },
+        "id_usuario":       { "type": "integer", "format": "int32", "example": 1 },
+        "id_distribuidor":  { "type": "integer", "format": "int32", "example": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["pendente", "confirmado", "em_entrega", "entregue", "cancelado"],
+          "example": "pendente"
+        },
+        "subtotal":         { "type": "number", "format": "double", "example": 215.00 },
+        "taxa_entrega":     { "type": "number", "format": "double", "example": 8.00 },
+        "total":            { "type": "number", "format": "double", "example": 223.00 },
+        "forma_pagamento":  { "type": "string", "example": "pix" },
+        "endereco_entrega": { "type": "string", "example": "Av. Principal, 50" },
+        "criado_em":        { "type": "string", "format": "date-time", "example": "2026-05-06 10:30:00" }
+      }
+    },
+    "PedidoResponse": {
+      "type": "object",
+      "properties": {
+        "pedido": { "$ref": "#/definitions/PedidoDetalhes" },
+        "itens": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ItemPedido" }
+        },
+        "mensagem": {
+          "type": "string",
+          "example": "O distribuidor entrará em contato para confirmar a entrega"
+        }
+      }
+    },
+    "Erro": {
+      "type": "object",
+      "properties": {
+        "erro": { "type": "string", "description": "Mensagem de erro" }
+      }
+    },
+    "UsuarioPerfil": {
+      "type": "object",
+      "properties": {
+        "id_usuario": { "type": "integer", "format": "int32", "example": 1 },
+        "nome": { "type": "string", "example": "João Silva" },
+        "email": { "type": "string", "format": "email", "example": "joao@example.com" },
+        "telefone": { "type": "string", "example": "(11) 98765-4321" },
+        "endereco": { "type": "string", "example": "Av. Paulista, 1000" },
+        "cidade": { "type": "string", "example": "São Paulo" },
+        "estado": { "type": "string", "example": "SP" },
+        "cep": { "type": "string", "example": "01310-100" }
+      }
+    }
+  }
+}
