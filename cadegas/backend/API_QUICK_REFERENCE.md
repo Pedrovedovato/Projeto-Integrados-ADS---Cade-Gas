@@ -44,6 +44,30 @@ Content-Type: application/json
 
 ---
 
+## 👤 USUÁRIOS
+
+### Buscar perfil completo
+```
+GET /usuarios/{id}
+
+✅ 200: {
+  "id_usuario": 1,
+  "nome": "...",
+  "email": "...",
+  "telefone": "...",
+  "endereco": "...",
+  "cidade": "...",
+  "estado": "...",
+  "cep": "..."
+}
+❌ 400: { "erro": "ID de usuário inválido" }
+❌ 404: { "erro": "Usuário não encontrado" }
+```
+
+Campos nulos no banco vêm como string vazia.
+
+---
+
 ## 🏪 DISTRIBUIDORES
 
 ### Listar Ativos

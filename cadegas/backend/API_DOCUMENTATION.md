@@ -94,7 +94,38 @@ Autentica um usuário existente.
 
 ---
 
-### 2️⃣ DISTRIBUIDORES
+### 2️⃣ USUÁRIOS
+
+#### GET /usuarios/{id}
+Retorna o perfil completo do usuário. Usado pelo frontend no checkout para pré-preencher o endereço de entrega e exibir as informações de contato.
+
+**Path params:**
+
+| Param | Tipo | Observação |
+|-------|------|------------|
+| id | int positivo | id_usuario retornado por `/login` ou `/register` |
+
+**Responses:**
+- ✅ **200 OK**
+  ```json
+  {
+    "id_usuario": 1,
+    "nome": "João Silva",
+    "email": "joao@example.com",
+    "telefone": "(11) 98765-4321",
+    "endereco": "Av. Paulista, 1000",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "01310-100"
+  }
+  ```
+  > Campos nulos no banco vêm como string vazia (`""`). `id_usuario` é sempre inteiro.
+- ❌ **400 Bad Request** — `{"erro": "ID de usuário inválido"}` (id <= 0 ou não numérico)
+- ❌ **404 Not Found** — `{"erro": "Usuário não encontrado"}`
+
+---
+
+### 3️⃣ DISTRIBUIDORES
 
 #### GET /distribuidores
 Lista os distribuidores ativos.
@@ -168,7 +199,7 @@ Lista os produtos **disponíveis** (`disponivel = 1`) de um distribuidor especí
 
 ---
 
-### 3️⃣ PEDIDOS
+### 4️⃣ PEDIDOS
 
 #### POST /pedidos
 Cria um novo pedido. O backend calcula `subtotal`, `taxa_entrega` (snapshot do distribuidor) e `total`.
