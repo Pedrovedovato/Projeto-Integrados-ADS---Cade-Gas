@@ -76,6 +76,23 @@ if (isset($_SESSION['usuario_id'])) {
                     cep: ''
                 };
 
+                if (!usuario.id_usuario) {
+                    errorDiv.textContent = 'Login retornou sem id_usuario';
+                    return;
+                }
+
+                // Espelha o id_usuario na $_SESSION do PHP — gating das páginas internas depende dela
+                const sessionResp = await fetch('auth_set.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_usuario: usuario.id_usuario })
+                });
+
+                if (!sessionResp.ok) {
+                    errorDiv.textContent = 'Erro ao iniciar sessão';
+                    return;
+                }
+
                 localStorage.setItem('usuario', JSON.stringify(usuario));
                 window.location.href = 'home.php';
             } else {

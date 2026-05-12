@@ -21,40 +21,48 @@ if (!isset($_SESSION['usuario_id'])) {
             <h1>Finalizar Pedido</h1>
         </header>
 
-        <div class="checkout-container">
+        <div class="checkout-container" id="checkoutMain">
             <div class="section">
-                <h2>Dados do Usuário</h2>
-                <div id="userData" class="user-data"></div>
-            </div>
-
-            <div class="section">
-                <h2>Resumo do Pedido</h2>
+                <h2>Resumo do pedido</h2>
                 <div id="orderSummary"></div>
+                <div class="form-group">
+                    <label for="paymentMethod">Forma de pagamento</label>
+                    <select id="paymentMethod" class="form-control">
+                        <option value="">Selecione</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="pix">PIX</option>
+                        <option value="cartao">Cartão</option>
+                    </select>
+                </div>
             </div>
 
             <div class="section">
-                <h2>Forma de Pagamento</h2>
-                <select id="paymentMethod" class="form-control">
-                    <option value="">Selecione forma de pagamento</option>
-                    <option value="dinheiro">Dinheiro</option>
-                    <option value="pix">PIX</option>
-                    <option value="cartao">Cartão</option>
-                </select>
+                <h2>Informações de contato</h2>
+                <div id="contactInfo" class="user-data"></div>
             </div>
 
             <div class="section">
-                <h2>Endereço de Entrega (opcional)</h2>
-                <input type="text" id="enderecoEntrega" class="form-control" placeholder="Se vazio, usará o endereço cadastrado">
+                <h2>Endereço da entrega</h2>
+                <input type="text" id="enderecoEntrega" class="form-control" placeholder="Endereço, cidade/UF — CEP">
+                <p class="info-text">Pré-preenchido com seu endereço cadastrado — pode editar se quiser entregar em outro local.</p>
             </div>
 
             <div id="errorMessage" class="error-message"></div>
 
             <button id="confirmBtn" class="btn btn-primary btn-full">Confirmar Pedido</button>
         </div>
+
+        <div class="checkout-container" id="checkoutSuccess" style="display:none;">
+            <div class="section">
+                <h2>Pedido confirmado</h2>
+                <div id="successDetails"></div>
+                <a href="home.php" class="btn btn-primary btn-full">Voltar para Início</a>
+            </div>
+        </div>
     </div>
 
     <script>
-        const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+        let usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
         const distributorId = localStorage.getItem('selected_distribuidor');
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
 
@@ -62,17 +70,36 @@ if (!isset($_SESSION['usuario_id'])) {
             window.location.href = 'home.php';
         }
 
-        // Exibir dados do usuário (se disponíveis)
-        const enderecoCompleto = usuario.endereco && usuario.cidade 
-            ? `${usuario.endereco}, ${usuario.cidade}/${usuario.estado}` 
-            : 'Não cadastrado - informe abaixo';
+        function montarEnderecoString(u) {
+            const linha1 = (u.endereco || '').trim();
+            const cidade = (u.cidade || '').trim();
+            const estado = (u.estado || '').trim();
+            const cep = (u.cep || '').trim();
 
-        document.getElementById('userData').innerHTML = `
-            <p><strong>Nome:</strong> ${usuario.nome || 'Não informado'}</p>
-            <p><strong>Telefone:</strong> ${usuario.telefone || 'Não informado'}</p>
-            <p><strong>Endereço:</strong> ${enderecoCompleto}</p>
-            ${usuario.cep ? `<p><strong>CEP:</strong> ${usuario.cep}</p>` : ''}
-        `;
+            const localidade = cidade && estado
+                ? `${cidade}/${estado}`
+                : (cidade || estado);
+
+            const partes = [];
+            if (linha1) partes.push(linha1);
+            if (localidade) partes.push(localidade);
+
+            let resultado = partes.join(', ');
+            if (cep) {
+                resultado = resultado
+                    ? `${resultado} — CEP ${cep}`
+                    : `CEP ${cep}`;
+            }
+            return resultado;
+        }
+
+        function renderContactInfo() {
+            document.getElementById('contactInfo').innerHTML = `
+                <p><strong>Nome:</strong> ${usuario.nome || 'Não informado'}</p>
+                <p><strong>Email:</strong> ${usuario.email || 'Não informado'}</p>
+                <p><strong>Telefone:</strong> ${usuario.telefone || 'Não informado'}</p>
+            `;
+        }
 
         function renderOrderSummary() {
             const subtotal = cart.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
@@ -94,62 +121,104 @@ if (!isset($_SESSION['usuario_id'])) {
             `;
         }
 
+        function preencherEnderecoEntrega() {
+            const input = document.getElementById('enderecoEntrega');
+            const str = montarEnderecoString(usuario);
+            if (str) {
+                input.value = str;
+            }
+        }
+
+        async function carregarPerfil() {
+            if (!usuario.id_usuario) return;
+
+            const resultado = await API.Usuarios.buscar(usuario.id_usuario);
+            if (!resultado.sucesso) {
+                console.warn('Falha ao buscar perfil:', resultado.erro);
+                return;
+            }
+
+            usuario = {
+                ...usuario,
+                nome: resultado.nome || usuario.nome,
+                email: resultado.email || usuario.email,
+                telefone: resultado.telefone || '',
+                endereco: resultado.endereco || '',
+                cidade: resultado.cidade || '',
+                estado: resultado.estado || '',
+                cep: resultado.cep || ''
+            };
+            localStorage.setItem('usuario', JSON.stringify(usuario));
+        }
+
+        function mostrarSucesso(resultado) {
+            document.getElementById('checkoutMain').style.display = 'none';
+
+            document.getElementById('successDetails').innerHTML = `
+                <p><strong>Pedido #${resultado.id_pedido}</strong></p>
+                <div class="order-item">
+                    <span>Subtotal</span>
+                    <span>R$ ${resultado.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="order-item">
+                    <span>Taxa de entrega</span>
+                    <span>R$ ${resultado.taxa_entrega.toFixed(2)}</span>
+                </div>
+                <div class="order-total">
+                    <strong>Total</strong>
+                    <strong>R$ ${resultado.total.toFixed(2)}</strong>
+                </div>
+                <p><strong>Forma de pagamento:</strong> ${resultado.forma_pagamento}</p>
+                <p><strong>Status:</strong> ${resultado.status}</p>
+                <p class="info-text">O distribuidor entrará em contato para confirmar a entrega.</p>
+            `;
+
+            document.getElementById('checkoutSuccess').style.display = 'block';
+        }
+
         document.getElementById('confirmBtn').addEventListener('click', async () => {
             const paymentMethod = document.getElementById('paymentMethod').value;
             const enderecoEntrega = document.getElementById('enderecoEntrega').value.trim();
             const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = '';
 
             if (!paymentMethod) {
                 errorDiv.textContent = 'Selecione uma forma de pagamento';
                 return;
             }
 
-            // swagger-1 espera: {id_usuario, id_distribuidor, itens[{id_produto, quantidade}], forma_pagamento?, endereco_entrega?}
             const pedidoData = {
                 id_usuario: usuario.id_usuario,
                 id_distribuidor: parseInt(distributorId),
                 itens: cart.map(item => ({
                     id_produto: item.id_produto,
                     quantidade: item.quantidade
-                    // Backend calcula preco_unitario
                 })),
-                forma_pagamento: paymentMethod // "dinheiro", "pix" ou "cartao"
+                forma_pagamento: paymentMethod
             };
 
-            // Adicionar endereço de entrega se informado
             if (enderecoEntrega) {
                 pedidoData.endereco_entrega = enderecoEntrega;
             }
 
-            // Usando módulo API baseado em swagger-1.json
             const resultado = await API.Pedidos.criar(pedidoData);
 
             if (resultado.sucesso) {
                 localStorage.removeItem('cart');
                 localStorage.removeItem('selected_distribuidor');
-
-                // swagger-1 retorna: {mensagem, id_pedido, subtotal, taxa_entrega, total, forma_pagamento, status}
-                const mensagemDetalhada = `
-Pedido #${resultado.id_pedido} confirmado!
-
-Subtotal: R$ ${resultado.subtotal.toFixed(2)}
-Taxa de Entrega: R$ ${resultado.taxa_entrega.toFixed(2)}
-Total: R$ ${resultado.total.toFixed(2)}
-
-Forma de Pagamento: ${resultado.forma_pagamento}
-Status: ${resultado.status}
-
-O distribuidor entrará em contato para confirmar a entrega.
-                `.trim();
-
-                alert(mensagemDetalhada);
-                window.location.href = 'home.php';
+                mostrarSucesso(resultado);
             } else {
                 errorDiv.textContent = resultado.erro || 'Erro ao criar pedido';
             }
         });
 
-        renderOrderSummary();
+        (async () => {
+            renderOrderSummary();
+            renderContactInfo();
+            await carregarPerfil();
+            renderContactInfo();
+            preencherEnderecoEntrega();
+        })();
     </script>
 </body>
 </html>

@@ -120,6 +120,21 @@ const Produtos = {
 };
 
 /**
+ * API de Usuários
+ */
+const Usuarios = {
+    /**
+     * Buscar perfil completo do usuário
+     * GET /usuarios/{id}
+     * @param {number} id - ID do usuário
+     * @returns {Promise} {sucesso, id_usuario, nome, email, telefone, endereco, cidade, estado, cep}
+     */
+    async buscar(id) {
+        return apiRequest(`/usuarios/${id}`);
+    }
+};
+
+/**
  * API de Pedidos
  */
 const Pedidos = {
@@ -150,6 +165,7 @@ const Pedidos = {
 // Exportar para uso global
 window.API = {
     Auth,
+    Usuarios,
     Distribuidores,
     Produtos,
     Pedidos

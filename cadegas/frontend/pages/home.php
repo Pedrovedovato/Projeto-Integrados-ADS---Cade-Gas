@@ -201,7 +201,8 @@ if (!isset($_SESSION['usuario_id'])) {
         document.getElementById('filter').addEventListener('change', renderProdutos);
 
         document.getElementById('logoutBtn').addEventListener('click', async () => {
-            // Logout não tem endpoint no swagger, apenas limpar localStorage
+            // Destrói a $_SESSION do PHP (auth_logout.php) antes de limpar o estado client-side
+            await fetch('auth_logout.php', { method: 'POST' });
             localStorage.clear();
             window.location.href = 'welcome.php';
         });
