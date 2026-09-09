@@ -30,7 +30,10 @@ async function apiRequest(endpoint, options = {}) {
 
         // Swagger usa "erro" para erros, não "error"
         if (data.erro) {
-            throw new Error(data.erro);
+            return {
+                sucesso: false,
+                erro: data.erro
+            };
         }
 
         // Para responses com array direto (ex: GET /distribuidores)
@@ -131,6 +134,23 @@ const Usuarios = {
      */
     async buscar(id) {
         return apiRequest(`/usuarios/${id}`);
+    },
+
+    /**
+     * Buscar histórico de pedidos do usuário
+     * GET /usuarios/{id}/pedidos
+     * @param {number} id - ID do usuário
+     * @returns {Promise} {sucesso, id_usuario, total_pedidos, pedidos}
+     */
+    async listarPedidos(id) {
+        return apiRequest(`/usuarios/${id}/pedidos`);
+    },
+
+    /**
+     * Alias para listar pedidos do usuário
+     */
+    async buscarPorUsuario(id) {
+        return apiRequest(`/usuarios/${id}/pedidos`);
     }
 };
 
@@ -159,6 +179,23 @@ const Pedidos = {
      */
     async buscar(id) {
         return apiRequest(`/pedidos/${id}`);
+    },
+
+    /**
+     * Listar histórico de pedidos por usuário
+     * GET /usuarios/{id}/pedidos
+     * @param {number} idUsuario - ID do usuário
+     * @returns {Promise} {sucesso, id_usuario, total_pedidos, pedidos}
+     */
+    async listarPorUsuario(idUsuario) {
+        return apiRequest(`/usuarios/${idUsuario}/pedidos`);
+    },
+
+    /**
+     * Alias para listar pedidos por usuário
+     */
+    async buscarPorUsuario(idUsuario) {
+        return apiRequest(`/usuarios/${idUsuario}/pedidos`);
     }
 };
 

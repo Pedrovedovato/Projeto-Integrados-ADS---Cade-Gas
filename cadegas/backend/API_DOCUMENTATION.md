@@ -125,6 +125,60 @@ Retorna o perfil completo do usuário. Usado pelo frontend no checkout para pré
 
 ---
 
+#### GET /usuarios/{id}/pedidos
+Retorna o histórico de todos os pedidos realizados por um determinado usuário, ordenados cronologicamente do mais recente para o mais antigo (`criado_em DESC`), incluindo detalhes do distribuidor e array com todos os itens de cada pedido.
+
+**Path params:**
+
+| Param | Tipo | Observação |
+|-------|------|------------|
+| id | int positivo | id_usuario do consumidor |
+
+**Responses:**
+- ✅ **200 OK**
+  ```json
+  {
+    "id_usuario": 1,
+    "total_pedidos": 1,
+    "pedidos": [
+      {
+        "id_pedido": 5,
+        "id_distribuidor": 1,
+        "distribuidor_nome": "GásFácil Distribuidora",
+        "status": "pendente",
+        "subtotal": 215.00,
+        "taxa_entrega": 8.00,
+        "total": 223.00,
+        "forma_pagamento": "pix",
+        "endereco_entrega": "Av. Principal, 50 - Bertioga/SP",
+        "criado_em": "2026-05-06 10:30:00",
+        "itens": [
+          {
+            "id_produto": 1,
+            "nome": "Botijão P13 (13 kg)",
+            "descricao": "Botijão residencial padrão",
+            "quantidade": 2,
+            "preco_unitario": 95.00,
+            "subtotal": 190.00
+          },
+          {
+            "id_produto": 3,
+            "nome": "Galão de Água 20L",
+            "descricao": "Água mineral natural",
+            "quantidade": 1,
+            "preco_unitario": 25.00,
+            "subtotal": 25.00
+          }
+        ]
+      }
+    ]
+  }
+  ```
+- ❌ **400 Bad Request** — `{"erro": "ID de usuário inválido"}` (id <= 0 ou não numérico)
+- ❌ **404 Not Found** — `{"erro": "Usuário não encontrado"}`
+
+---
+
 ### 3️⃣ DISTRIBUIDORES
 
 #### GET /distribuidores
@@ -470,7 +524,7 @@ Resposta de erro tem sempre o formato `{"erro": "mensagem"}`.
 ## 🚀 Próximos Passos (fora do escopo P0)
 
 - [ ] Autenticação com tokens (JWT/sessão)
-- [ ] Endpoints `GET /usuarios/{id}/pedidos`, `PATCH /pedidos/{id}/status`, `DELETE /pedidos/{id}`
+- [ ] Endpoints de gestão avançada: `PATCH /pedidos/{id}/status`, `DELETE /pedidos/{id}`
 - [ ] Filtrar distribuidores por proximidade (`latitude`/`longitude` já no schema)
 - [ ] Rastreamento de pedidos em tempo real
 - [ ] Sistema de avaliação de distribuidores

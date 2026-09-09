@@ -40,6 +40,10 @@ if ($uri === '/login' && $method === 'POST') {
 // ================================
 // USUÁRIOS
 // ================================
+if (preg_match('#^/usuarios/(\d+)/pedidos$#', $uri, $matches) && $method === 'GET') {
+    (new PedidoController())->listarPorUsuario((int) $matches[1]);
+    exit;
+}
 if (preg_match('#^/usuarios/(\d+)$#', $uri, $matches) && $method === 'GET') {
     (new UsuarioController())->buscar((int) $matches[1]);
     exit;
