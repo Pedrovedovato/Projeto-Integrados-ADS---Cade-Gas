@@ -64,6 +64,33 @@ GET /usuarios/{id}
 ❌ 404: { "erro": "Usuário não encontrado" }
 ```
 
+### Histórico de pedidos do usuário
+```
+GET /usuarios/{id}/pedidos
+
+✅ 200: {
+  "id_usuario": 1,
+  "total_pedidos": 1,
+  "pedidos": [
+    {
+      "id_pedido": 5,
+      "id_distribuidor": 1,
+      "distribuidor_nome": "...",
+      "status": "pendente",
+      "subtotal": 215.00,
+      "taxa_entrega": 8.00,
+      "total": 223.00,
+      "forma_pagamento": "pix",
+      "endereco_entrega": "...",
+      "criado_em": "2026-05-06 10:30:00",
+      "itens": [...]
+    }
+  ]
+}
+❌ 400: { "erro": "ID de usuário inválido" }
+❌ 404: { "erro": "Usuário não encontrado" }
+```
+
 Campos nulos no banco vêm como string vazia.
 
 ---

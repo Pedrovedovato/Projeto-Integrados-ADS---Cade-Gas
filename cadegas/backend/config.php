@@ -1,6 +1,18 @@
 <?php
 
 function carregarEnv($caminho) {
+    // Popula $_ENV a partir de variáveis de ambiente do sistema/Docker
+    foreach (getenv() as $nome => $valor) {
+        if (!isset($_ENV[$nome])) {
+            $_ENV[$nome] = $valor;
+        }
+    }
+    foreach ($_SERVER as $nome => $valor) {
+        if (is_string($valor) && !isset($_ENV[$nome])) {
+            $_ENV[$nome] = $valor;
+        }
+    }
+
     if (!file_exists($caminho)) {
         return;
     }
@@ -8,7 +20,8 @@ function carregarEnv($caminho) {
     $linhas = file($caminho, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
     foreach ($linhas as $linha) {
-        if (strpos(trim($linha), '#') === 0) {
+        $linha = trim($linha);
+        if ($linha === '' || strpos($linha, '#') === 0 || strpos($linha, '=') === false) {
             continue;
         }
 

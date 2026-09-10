@@ -48,6 +48,10 @@ if (!isset($_SESSION['usuario_id'])) {
                 <span>Carrinho</span>
                 <span id="cartBadge" class="badge"></span>
             </a>
+            <a href="history.php" class="nav-item">
+                <span>📋</span>
+                <span>Pedidos</span>
+            </a>
         </nav>
     </div>
 

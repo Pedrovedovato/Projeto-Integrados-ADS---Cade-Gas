@@ -111,6 +111,50 @@ class Pedido
     }
 
     /**
+     * Busca todos os pedidos de um usuário, ordenados do mais recente para o mais antigo.
+     * Retorna array de pedidos, cada um com seus respectivos itens e dados do distribuidor.
+     */
+    public function buscarPorUsuario($idUsuario)
+    {
+        try {
+            $sql = "SELECT p.id_pedido, p.id_usuario, p.id_distribuidor, d.nome_empresa AS distribuidor_nome,
+                           p.status, p.subtotal, p.taxa_entrega, p.total, p.forma_pagamento,
+                           p.endereco_entrega, p.criado_em
+                    FROM pedido p
+                    JOIN distribuidor d ON d.id_distribuidor = p.id_distribuidor
+                    WHERE p.id_usuario = :id_usuario
+                    ORDER BY p.criado_em DESC, p.id_pedido DESC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':id_usuario', (int) $idUsuario, PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $pedidos = [];
+            foreach ($rows as $row) {
+                $idPedido = (int) $row['id_pedido'];
+                $itens = $this->buscarItensPedido($idPedido);
+                $pedidos[] = [
+                    'id_pedido'         => $idPedido,
+                    'id_distribuidor'   => (int) $row['id_distribuidor'],
+                    'distribuidor_nome' => $row['distribuidor_nome'],
+                    'status'            => $row['status'],
+                    'subtotal'          => (float) $row['subtotal'],
+                    'taxa_entrega'      => (float) $row['taxa_entrega'],
+                    'total'             => (float) $row['total'],
+                    'forma_pagamento'   => $row['forma_pagamento'],
+                    'endereco_entrega'  => $row['endereco_entrega'] ?? '',
+                    'criado_em'         => $row['criado_em'],
+                    'itens'             => $itens,
+                ];
+            }
+            return $pedidos;
+        } catch (PDOException $e) {
+            error_log('[Pedido::buscarPorUsuario] ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Itens de um pedido — devolve `nome` do produto (rótulo curto)
      * + `descricao` (texto longo) + subtotal já calculado por linha.
      * Tipos numéricos vêm como número no JSON.

@@ -8,7 +8,7 @@ O sistema permite:
 - Busca do perfil completo do usuário
 - Listagem de distribuidores
 - Listagem de produtos (geral ou por distribuidor)
-- Criação e consulta de pedidos
+- Criação, consulta e histórico de pedidos por usuário
 
 ## Objetivo do Projeto
 
@@ -37,7 +37,7 @@ cadegas/backend/
 │   ├── UsuarioController.php    # GET /usuarios/{id}
 │   ├── DistribuidorController.php  # GET /distribuidores, GET /distribuidores/{id}/produtos
 │   ├── ProdutoController.php    # GET /produtos
-│   └── PedidoController.php     # POST /pedidos, GET /pedidos/{id}
+│   └── PedidoController.php     # POST /pedidos, GET /pedidos/{id}, GET /usuarios/{id}/pedidos
 ├── models/
 │   ├── Usuario.php
 │   ├── Distribuidor.php
@@ -56,15 +56,27 @@ cadegas/backend/
 
 ## Configuração
 
-### Banco de dados
+### Executando com Docker (Recomendado)
+
+Na raiz do projeto, execute:
+```bash
+docker compose up -d
+```
+O Docker inicializará automaticamente o Apache + PHP 8.2 e o banco de dados MariaDB com `cadegas/database/schema.sql` já importado. As variáveis de ambiente do backend já vêm pré-configuradas no `docker-compose.yml`.
+
+---
+
+### Executando com UwAmp / Servidor Local
+
+#### Banco de dados
 
 - Nome do banco: **`cadgas`** (sem o segundo "e" — proposital, alinhado com o `schema.sql`).
 - Importar `cadegas/database/schema.sql` no phpMyAdmin (ou via `mysql -u root -p < schema.sql`).
 - O script cria o banco, as tabelas e os dados de seed (3 distribuidores, 7 produtos, 1 usuário, 1 pedido).
 
-### Variáveis de ambiente (`.env`)
+#### Variáveis de ambiente (`.env`)
 
-As credenciais e flags do backend vêm de `cadegas/backend/.env`. O arquivo está no `.gitignore` — cada máquina mantém o seu. Crie-o com base no template abaixo:
+As credenciais e flags do backend vêm de `cadegas/backend/.env`. O arquivo está no `.gitignore` — cada máquina mantém o seu. Crie-o copiando `cadegas/backend/.env.example` ou com base no template abaixo:
 
 ```
 DB_HOST=localhost
@@ -180,6 +192,45 @@ Usado pelo frontend no checkout para pré-preencher endereço e exibir informaç
 Campos nulos no banco vêm como string vazia (`""`).
 
 Erros: `400` (ID inválido), `404` (não encontrado).
+
+#### `GET /usuarios/{id}/pedidos` — histórico de pedidos do usuário
+
+Retorna os pedidos realizados pelo usuário em ordem decrescente de data (`criado_em DESC`), incluindo distribuidor e lista de itens com seus preços unitários (snapshot).
+
+**Resposta 200:**
+
+```json
+{
+  "id_usuario": 1,
+  "total_pedidos": 1,
+  "pedidos": [
+    {
+      "id_pedido": 1,
+      "id_distribuidor": 1,
+      "distribuidor_nome": "Gás Central",
+      "status": "pendente",
+      "subtotal": 190.0,
+      "taxa_entrega": 10.0,
+      "total": 200.0,
+      "forma_pagamento": "pix",
+      "endereco_entrega": "Rua A, 100, Belo Horizonte/MG — CEP 30000-000",
+      "criado_em": "2026-05-12 10:00:00",
+      "itens": [
+        {
+          "id_produto": 1,
+          "nome": "Botijão P13",
+          "descricao": "Botijão residencial 13kg",
+          "quantidade": 2,
+          "preco_unitario": 95.0,
+          "subtotal": 190.0
+        }
+      ]
+    }
+  ]
+}
+```
+
+Erros: `400` (ID inválido), `404` (usuário não encontrado).
 
 ### Distribuidores
 

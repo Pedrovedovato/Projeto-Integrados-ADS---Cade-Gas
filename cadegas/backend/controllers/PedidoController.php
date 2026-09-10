@@ -193,4 +193,34 @@ class PedidoController
             "mensagem" => "O distribuidor entrará em contato para confirmar a entrega",
         ]);
     }
+
+    /**
+     * GET /usuarios/{id}/pedidos
+     */
+    public function listarPorUsuario($idUsuario)
+    {
+        $idUsuario = (int) $idUsuario;
+        if ($idUsuario <= 0) {
+            http_response_code(400);
+            echo json_encode(["erro" => "ID de usuário inválido"]);
+            return;
+        }
+
+        $usuarioModel = new Usuario();
+        if (!$usuarioModel->existe($idUsuario)) {
+            http_response_code(404);
+            echo json_encode(["erro" => "Usuário não encontrado"]);
+            return;
+        }
+
+        $pedidoModel = new Pedido();
+        $pedidos = $pedidoModel->buscarPorUsuario($idUsuario);
+
+        http_response_code(200);
+        echo json_encode([
+            "id_usuario"    => $idUsuario,
+            "total_pedidos" => count($pedidos),
+            "pedidos"       => $pedidos,
+        ]);
+    }
 }
