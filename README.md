@@ -1,155 +1,139 @@
 # CadêGás — MVP
 
-## Descrição do Projeto
-O CadêGás é uma aplicação web desenvolvida com o objetivo de validar uma proposta simples: permitir que consumidores encontrem rapidamente distribuidores disponíveis e realizem pedidos de gás ou água, especialmente fora do horário comercial.
-Este projeto foi construído como um MVP (Minimum Viable Product), focado em validar a ideia com o menor nível de complexidade possível.
+Aplicação web desenvolvida para conectar consumidores a distribuidores de gás e água, permitindo localizar fornecedores, avaliar produtos e realizar pedidos com pagamento na entrega.
 
-## Objetivos do MVP
-Validar se o usuário consegue:
+Este repositório reúne a versão integrada do frontend, backend e banco de dados do MVP do CadêGás, resultante do último merge entre os módulos de interface e API.
 
-•	Encontrar distribuidores disponíveis (dentro ou fora do horário comercial) 
+## Visão geral
 
-•	Visualizar produtos e preços 
+O projeto foi concebido como um MVP (Minimum Viable Product) focado em validar a proposta de valor com o menor nível de complexidade possível. A ideia central é permitir que:
 
-•	Realizar um pedido simples 
+- consumidores encontrem distribuidores disponíveis;
+- comparem produtos e preços;
+- adicionem itens ao carrinho;
+- realizem pedidos simples;
+- concluam a compra com pagamento na entrega.
 
-•	Realizar o pagamento na entrega
+## Público-alvo
 
-O sistema não busca escalabilidade nem automação completa nesta fase.
+### Consumidor
+- consumidores residenciais;
+- consumidores comerciais de pequenos comércios.
 
-## Público-Alvo
-Consumidor
+### Distribuidor
+- distribuidores que desejam participar manualmente da operação.
 
-•	Consumidores residenciais 
+## Funcionalidades implementadas
 
-•	Consumidor comercial de pequenos comércios 
+### Usuário
+- cadastro de consumidor;
+- login;
+- endereço informado manualmente;
+- consulta de perfil.
 
-Distribuidor
+### Distribuidores
+- listagem de distribuidores disponíveis;
+- exibição de nome, endereço aproximado, produtos, preço e taxa de entrega.
 
-•	Distribuidores (participação limitada e manual) 
+### Pedido
+- seleção de produto e quantidade;
+- carrinho de compras;
+- resumo do pedido;
+- confirmação final.
 
-## Funcionalidades Implementadas (P0)
-Usuário
+### Pagamento
+- pagamento offline na entrega;
+- opções de dinheiro, Pix e cartão.
 
-•	Cadastro de consumidor. Exibição de:
+### Histórico de compras
+- consulta de pedidos anteriores do consumidor com dados do distribuidor, itens, forma de pagamento, valores e status.
 
-o	Nome 
+## Funcionalidades fora do escopo do MVP
 
-o	Telefone
+Para manter o foco e reduzir a complexidade, não foram implementadas:
 
-o	E-mail
+- pagamento online;
+- rastreamento em tempo real;
+- notificações push/SMS/WhatsApp;
+- avaliações e comentários;
+- aplicativo mobile;
+- gestão completa da operação do distribuidor;
+- filtros e comparações complexas.
 
-o	Endereço (manual) 
+## Arquitetura do projeto
 
-•	Login 
+```text
+cadegas/
+├─ cadegas/
+│  ├─ backend/        # API REST em PHP + MySQL
+│  ├─ frontend/       # interface web em PHP, HTML, CSS e JS
+│  └─ database/       # schema e documentação do banco
+├─ README.md
+├─ docker-compose.yml
+├─ .gitignore
+└─ .idea/
+```
 
-## Localização
-•	Endereço informado manualmente 
+## Stack tecnológica
 
-## Distribuidores
-•	Listagem de distribuidores. Exibição de: 
-
-o	Nome 
-
-o	Endereço aproximado
-
-o	Produtos disponíveis (gás e/ou água) 
-
-o	Preço do produto
-
-o	Taxa de entrega fixa
-
-## Pedido
-
-•	Seleção de produto (gás ou água) e sua quantidade
-
-•	Carrinho de compras 
-
-•	Resumo do pedido 
-
-## Pagamento
-•	Seleção de pagamento offline (Pagamento na entrega): 
-
-o	Dinheiro 
-
-o	Pix 
-
-o	Cartão 
-
-## Finalização
-•	Confirmação do pedido 
-
-•	Número do pedido 
-
-•	Mensagem informativa 
-
-## Histórico de Compras
-•	Consulta de pedidos anteriores do consumidor (data, distribuidor, itens, forma de pagamento, valores e status)
-
-## Funcionalidades Fora do MVP
-Para manter o foco e reduzir complexidade, não foram implementadas:
-
-•	Pagamento online 
-
-•	Rastreamento em tempo real 
-
-•	Notificações (push, SMS, WhatsApp) 
-
-•	Avaliações e comentários 
-
-•	Aplicativo mobile 
-
-•	Gestão completa da operação do distribuidor 
-
-•	Filtros e comparações complexas
-
-## Tecnologias Utilizadas
-•	Backend: PHP 
-
-•	Banco de Dados: MySQL 
-
-•	Frontend: HTML, CSS, JavaScript 
-
-•	Ambiente: Docker / UwAmp (Apache + MySQL + PHP)
+- Backend: PHP
+- Banco de dados: MySQL
+- Frontend: HTML, CSS, JavaScript
+- Ambiente: Docker / UwAmp (Apache + MySQL + PHP)
 
 ## Como rodar
 
-### Opção 1: Via Docker (Recomendado)
+### Opção 1: via Docker (recomendado)
 
-Pré-requisitos: **Docker** e **Docker Compose** instalados.
+Pré-requisitos: Docker e Docker Compose instalados.
 
-1. **Iniciar os containers:**
-   ```bash
-   docker compose up -d
-   ```
-   *O container do banco de dados executará automaticamente o script `cadegas/database/schema.sql` na primeira inicialização.*
+1. Inicie os containers:
 
-2. **Acessar a aplicação:**
-   - **Frontend:** [http://localhost:8080/](http://localhost:8080/) (redireciona para `cadegas/frontend/pages/welcome.php`)
-   - **Backend API:** [http://localhost:8080/cadegas/backend/public/distribuidores](http://localhost:8080/cadegas/backend/public/distribuidores)
-   - **Smoke test de conexão:** [http://localhost:8080/cadegas/backend/public/teste_conexBD.php](http://localhost:8080/cadegas/backend/public/teste_conexBD.php)
+```bash
+docker compose up -d
+```
 
-3. **Parar os containers:**
-   ```bash
-   docker compose down
-   ```
+2. Acesse a aplicação:
 
----
+- Frontend: http://localhost:8080/
+- Backend API: http://localhost:8080/cadegas/backend/public/distribuidores
+- Smoke test da conexão: http://localhost:8080/cadegas/backend/public/teste_conexBD.php
 
-### Opção 2: Via UwAmp / XAMPP Local
+3. Para encerrar os containers:
 
-Pré-requisitos: **UwAmp** (Apache + MySQL + PHP 7+) instalado no Windows e um navegador.
+```bash
+docker compose down
+```
 
-1. **Servir o projeto.** Coloque (ou crie um symlink de) a pasta `cadegas/` deste repo dentro de `www/cadegas/` do UwAmp, de modo que o app fique acessível em `http://localhost/cadegas/...`.
-2. **Importar o banco.** No phpMyAdmin (`http://localhost/phpmyadmin`), execute o conteúdo de `cadegas/database/schema.sql`. O script cria o banco `cadgas` (sem o segundo "e", proposital), as tabelas, índices e dados de seed.
-3. **Configurar o `.env` do backend.** Crie `cadegas/backend/.env` com base no `cadegas/backend/.env.example`.
-4. **Smoke tests** (em ordem):
-   - `http://localhost/cadegas/backend/public/teste_conexBD.php` → deve responder `{"status": "Conectado ao banco com sucesso"}`.
-   - `http://localhost/cadegas/backend/public/distribuidores` → deve responder com a lista de distribuidores do seed.
-5. **Abrir a aplicação:** `http://localhost/cadegas/frontend/` (a raiz redireciona para `pages/welcome.php`).
+### Opção 2: via UwAmp / XAMPP local
 
-Fluxo nominal do consumidor: `welcome → register` (criar conta) → `login` → `home` (lista de produtos) → adicionar ao carrinho → `cart` → `checkout` (3 blocos: resumo, contato, endereço pré-preenchido) → confirmação inline → `history` (histórico de pedidos).
+Pré-requisitos: UwAmp (Apache + MySQL + PHP 7+) e navegador.
 
-> O usuário de seed do `schema.sql` tem hash de senha placeholder e **não consegue logar**. Crie um novo usuário pelo `register.php` para testar.
+1. Servir o projeto. Coloque a pasta `cadegas/` dentro de `www/cadegas/` do UwAmp.
+2. Importe o banco em phpMyAdmin executando `cadegas/database/schema.sql`.
+3. Configure o arquivo `.env` do backend com base em `cadegas/backend/.env.example`.
+4. Faça os smoke tests:
+   - http://localhost/cadegas/backend/public/teste_conexBD.php
+   - http://localhost/cadegas/backend/public/distribuidores
+5. Acesse a aplicação em http://localhost/cadegas/frontend/
 
-Documentação detalhada: [backend](cadegas/backend/README.md), [frontend](cadegas/frontend/README.md), [banco](cadegas/database/README.md). API completa em [`cadegas/backend/API_DOCUMENTATION.md`](cadegas/backend/API_DOCUMENTATION.md) ou no `swagger.json`.
+Fluxo nominal do consumidor: `welcome -> register -> login -> home -> cart -> checkout -> history`.
+
+> O usuário seed do `schema.sql` tem hash de senha placeholder e não consegue realizar login. Crie um novo usuário pela página de cadastro para testar o fluxo completo.
+
+## Estrutura dos módulos
+
+- [Backend](cadegas/backend/README.md)
+- [Frontend](cadegas/frontend/README.md)
+- [Banco de Dados](cadegas/database/README.md)
+- [Documentação da API](cadegas/backend/API_DOCUMENTATION.md)
+
+## Observações
+
+- A aplicação foi entregue como MVP funcional, com foco em validação de proposta.
+- A comunicação frontend-backend é feita via API REST.
+- O banco e a API já estão preparados para execução em ambiente local ou com Docker.
+
+## Status do projeto
+
+Projeto em etapa de validação funcional, com integração completa entre frontend, backend e banco de dados, conforme último merge realizado na branch de integração.
