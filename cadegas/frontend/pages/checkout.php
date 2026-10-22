@@ -56,7 +56,8 @@ if (!isset($_SESSION['usuario_id'])) {
             <div class="section">
                 <h2>Pedido confirmado</h2>
                 <div id="successDetails"></div>
-                <a href="home.php" class="btn btn-primary btn-full">Voltar para Início</a>
+                <a href="history.php" class="btn btn-primary btn-full" style="margin-bottom: 10px;">Ver Meus Pedidos</a>
+                <a href="home.php" class="btn btn-secondary btn-full">Voltar para Início</a>
             </div>
         </div>
     </div>

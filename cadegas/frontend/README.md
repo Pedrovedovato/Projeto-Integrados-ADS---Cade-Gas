@@ -26,6 +26,7 @@ Cada `.php` em `pages/` começa com `session_start()` e um gate que redireciona 
 | `products.php` | protegido | idem | `welcome.php` |
 | `cart.php` | protegido | idem | `welcome.php` |
 | `checkout.php` | protegido | idem | `welcome.php` |
+| `history.php` | protegido | idem | `welcome.php` |
 | `auth_set.php` | helper | nenhum gate, recebe POST JSON e seta a sessão | — |
 | `auth_logout.php` | helper | nenhum gate, destrói a sessão | — |
 
@@ -59,10 +60,10 @@ Exposto em `window.API` com cinco namespaces:
 | Namespace | Métodos | Endpoint |
 |---|---|---|
 | `API.Auth` | `registrar(userData)`, `login(email, senha)` | `POST /register`, `POST /login` |
-| `API.Usuarios` | `buscar(id)` | `GET /usuarios/{id}` |
+| `API.Usuarios` | `buscar(id)`, `listarPedidos(id)` | `GET /usuarios/{id}`, `GET /usuarios/{id}/pedidos` |
 | `API.Distribuidores` | `listar()`, `listarProdutos(id)` | `GET /distribuidores`, `GET /distribuidores/{id}/produtos` |
 | `API.Produtos` | `listarTodos()` | `GET /produtos` |
-| `API.Pedidos` | `criar(pedidoData)`, `buscar(id)` | `POST /pedidos`, `GET /pedidos/{id}` |
+| `API.Pedidos` | `criar(pedidoData)`, `buscar(id)`, `listarPorUsuario(idUsuario)` | `POST /pedidos`, `GET /pedidos/{id}`, `GET /usuarios/{id}/pedidos` |
 
 Base URL é `'/cadegas/backend/public'` — definida em `API_BASE` no topo de `api.js`. Se mudar o prefixo (`ROUTES_BASE` no backend), atualize aqui também.
 
