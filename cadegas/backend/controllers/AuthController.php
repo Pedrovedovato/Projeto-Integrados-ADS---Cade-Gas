@@ -11,101 +11,104 @@ class AuthController
     public function register()
     {
         $data = json_decode(file_get_contents("php://input"), true);
+        if (!is_array($data)) {
+            $data = [];
+        }
 
-        // Validação básica
-        if (
-            empty($data['nome']) ||
-            empty($data['email']) ||
-            empty($data['telefone']) ||
-            empty($data['senha'])
-        ) {
+        $nome     = isset($data['nome'])     ? trim((string) $data['nome'])     : '';
+        $email    = isset($data['email'])    ? trim((string) $data['email'])    : '';
+        $telefone = isset($data['telefone']) ? trim((string) $data['telefone']) : '';
+        $senha    = isset($data['senha'])    ? (string) $data['senha']          : '';
+
+        if ($nome === '' || $email === '' || $telefone === '' || $senha === '') {
             http_response_code(400);
-            echo json_encode([
-                "erro" => "Dados obrigatórios não preenchidos"
-            ]);
+            echo json_encode(["erro" => "Dados obrigatórios não preenchidos"]);
             return;
         }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["erro" => "E-mail inválido"]);
+            return;
+        }
+
+        if (strlen($senha) < 6) {
+            http_response_code(400);
+            echo json_encode(["erro" => "Senha deve ter no mínimo 6 caracteres"]);
+            return;
+        }
+
+        // Endereço opcional — US03 (informar localização). Se ausente, fica NULL.
+        $endereco = isset($data['endereco']) && trim((string) $data['endereco']) !== '' ? trim((string) $data['endereco']) : null;
+        $cidade   = isset($data['cidade'])   && trim((string) $data['cidade'])   !== '' ? trim((string) $data['cidade'])   : null;
+        $estado   = isset($data['estado'])   && trim((string) $data['estado'])   !== '' ? trim((string) $data['estado'])   : null;
+        $cep      = isset($data['cep'])      && trim((string) $data['cep'])      !== '' ? trim((string) $data['cep'])      : null;
 
         $usuario = new Usuario();
 
-        // Verifica e-mail duplicado
-        if ($usuario->emailExiste($data['email'])) {
+        if ($usuario->emailExiste($email)) {
             http_response_code(409);
-            echo json_encode([
-                "erro" => "E-mail já cadastrado"
-            ]);
+            echo json_encode(["erro" => "E-mail já cadastrado"]);
             return;
         }
 
-        // Cria usuário
-        $sucesso = $usuario->criar(
-            $data['nome'],
-            $data['email'],
-            $data['telefone'],
-            $data['senha']
-        );
+        $idUsuario = $usuario->criar($nome, $email, $telefone, $senha, $endereco, $cidade, $estado, $cep);
 
-        if ($sucesso) {
-            http_response_code(201);
-            echo json_encode([
-                "mensagem" => "Usuário cadastrado com sucesso"
-            ]);
-        } else {
+        if ($idUsuario === null) {
             http_response_code(500);
-            echo json_encode([
-                "erro" => "Erro ao cadastrar usuário"
-            ]);
+            echo json_encode(["erro" => "Erro ao cadastrar usuário"]);
+            return;
         }
+
+        http_response_code(201);
+        echo json_encode([
+            "mensagem"   => "Usuário cadastrado com sucesso",
+            "id_usuario" => $idUsuario,
+            "email"      => $email,
+        ]);
     }
+
     /**
      * POST /login
      */
     public function login()
     {
         $data = json_decode(file_get_contents("php://input"), true);
+        if (!is_array($data)) {
+            $data = [];
+        }
 
-        // Validação básica
-        if (
-            empty($data['email']) ||
-            empty($data['senha'])
-        ) {
+        $email = isset($data['email']) ? trim((string) $data['email']) : '';
+        $senha = isset($data['senha']) ? (string) $data['senha']        : '';
+
+        if ($email === '' || $senha === '') {
             http_response_code(400);
-            echo json_encode([
-                "erro" => "E-mail e senha são obrigatórios"
-            ]);
+            echo json_encode(["erro" => "E-mail e senha são obrigatórios"]);
             return;
         }
 
         $usuarioModel = new Usuario();
-        $usuario = $usuarioModel->buscarPorEmail($data['email']);
+        $usuario = $usuarioModel->buscarPorEmail($email);
 
-        // Usuário não encontrado
-        if (!$usuario) {
+        if (!$usuario || !password_verify($senha, $usuario['senha'])) {
+            // Mesma mensagem para "não existe" e "senha errada" — não revela se o e-mail está cadastrado.
             http_response_code(401);
-            echo json_encode([
-                "erro" => "E-mail ou senha inválidos"
-            ]);
+            echo json_encode(["erro" => "E-mail ou senha inválidos"]);
             return;
         }
 
-        // Verifica senha
-        if (!password_verify($data['senha'], $usuario['senha'])) {
-            http_response_code(401);
-            echo json_encode([
-                "erro" => "E-mail ou senha inválidos"
-            ]);
-            return;
-        }
-
-        // Login bem-sucedido
         http_response_code(200);
         echo json_encode([
-            "mensagem" => "Login realizado com sucesso",
-            "usuario" => [
-                "id" => $usuario['id_usuario'],
-                "nome" => $usuario['nome'],
-                "email" => $usuario['email']
-            ]
+            "mensagem"   => "Login realizado com sucesso",
+            "id_usuario" => (int) $usuario['id_usuario'],
+            "nome"       => $usuario['nome'],
+            "email"      => $usuario['email'],
+            // Mantido para compatibilidade com clientes antigos
+            "usuario"    => [
+                "id"    => (int) $usuario['id_usuario'],
+                "nome"  => $usuario['nome'],
+                "email" => $usuario['email'],
+            ],
         ]);
     }
 }

@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Se for um arquivo ou diretório real, deixa passar
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Caso contrário, redireciona para index.php mantendo a query string
+    RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+</IfModule>
