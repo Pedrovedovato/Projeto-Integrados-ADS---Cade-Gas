@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    container_name: cadegas-app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./cadegas:/var/www/html/cadegas
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: cadgas
+      DB_PASSWORD: cadgas
+      DB_NAME: cadgas
+      APP_DEBUG: "1"
+      CORS_ORIGIN: http://localhost:8080
+      ROUTES_BASE: /cadegas/backend/public
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:10.11
+    container_name: cadegas-db
+    ports:
+      - "3307:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: cadgas
+      MARIADB_USER: cadgas
+      MARIADB_PASSWORD: cadgas
+    volumes:
+      - ./cadegas/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - cadegas_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  cadegas_db_data:
